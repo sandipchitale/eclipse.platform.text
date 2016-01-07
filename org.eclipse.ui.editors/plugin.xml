@@ -1064,5 +1064,76 @@
       </theme>
 
    </extension>
+   
+   <extension
+         point="org.eclipse.ui.views">
+      <category
+            id="text.overview"
+            name="Overview">
+      </category>
+      <view
+      		allowMultiple="false"
+            name="Overview"
+            icon="icons/full/obj16/overview.gif"
+            category="text.overview"
+            class="org.eclipse.ui.editors.text.overview.OverviewView"
+            id="org.eclipse.ui.editors.text.overview.OverviewView"
+            restorable="true">
+      </view>
+      <stickyView
+            closeable="true"
+            id="org.eclipse.ui.editors.text.overview.OverviewView"
+            location="RIGHT"
+            moveable="true">
+      </stickyView>
+   </extension>
+   <extension
+         point="org.eclipse.ui.perspectiveExtensions">
+      <perspectiveExtension
+            targetID="*">
+         <view
+               closeable="true"
+               id="org.eclipse.ui.editors.text.overview.OverviewView"
+               minimized="false"
+               moveable="true"
+               ratio="0.1"
+               relationship="right"
+               relative="org.eclipse.ui.editorss"
+               showTitle="true"
+               standalone="true"
+               visible="true">
+         </view>
+      </perspectiveExtension>
+   </extension>
+   <extension
+         point="org.eclipse.core.runtime.preferences">
+      <initializer
+            class="org.eclipse.ui.editors.text.overview.OverviewPreferences">
+      </initializer>
+   </extension>
+   <extension
+         point="org.eclipse.ui.commands">
+      <command
+            defaultHandler="org.eclipse.ui.editors.text.overview.RefreshOverviewViewHandler"
+            id="org.eclipse.ui.editors.text.overview.refresh.command"
+            name="Refresh Overview">
+      </command>
+   </extension>
+   <extension
+         point="org.eclipse.ui.commandImages">
+      <image
+            commandId="org.eclipse.ui.editors.text.overview.refresh.command"
+            icon="icons/full/obj16/overview.gif">
+      </image>
+   </extension>
+   <extension
+         point="org.eclipse.ui.bindings">
+      <key
+            commandId="org.eclipse.ui.editors.text.overview.refresh.command"
+            contextId="org.eclipse.ui.contexts.window"
+            schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
+            sequence="M1+M2+M3+O">
+      </key>
+   </extension>
 
 </plugin>

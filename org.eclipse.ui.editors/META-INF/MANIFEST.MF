@@ -9,6 +9,7 @@ Bundle-Vendor: %providerName
 Bundle-Localization: plugin
 Export-Package: 
  org.eclipse.ui.editors.text,
+ org.eclipse.ui.editors.text.overview;x-internal:=true,
  org.eclipse.ui.editors.text.templates,
  org.eclipse.ui.internal.editors.quickdiff;x-internal:=true,
  org.eclipse.ui.internal.editors.text;x-internal:=true,
