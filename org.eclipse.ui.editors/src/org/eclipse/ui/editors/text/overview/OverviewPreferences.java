@@ -19,18 +19,22 @@ import org.eclipse.ui.internal.editors.text.EditorsPlugin;
 /**
  * The preferences initializer for Overview
  *
- * @author Sandip V. Chitale
+ * @author Sandip Chitale
  *
  */
 public class OverviewPreferences extends AbstractPreferenceInitializer {
 
-	static final String MIN_OVERVIEW_FONT_SIZE = "MIN_OVERVIEW_FONT_SIZE";
-	static final String OVERVIEW_FONT_SIZE = "OVERVIEW_FONT_SIZE";
-	static final String MAX_OVERVIEW_FONT_SIZE = "MAX_OVERVIEW_FONT_SIZE";
-	
-	private static int defaultMinOverviewFontSize = 1;
-	private static int defaultOverviewFontSize = defaultMinOverviewFontSize;
-	private static int defaultMaxOverviewFontSize = 13;
+	static final String MIN_OVERVIEW_FONT_SIZE= "MIN_OVERVIEW_FONT_SIZE"; //$NON-NLS-1$
+
+	static final String OVERVIEW_FONT_SIZE= "OVERVIEW_FONT_SIZE"; //$NON-NLS-1$
+
+	static final String MAX_OVERVIEW_FONT_SIZE= "MAX_OVERVIEW_FONT_SIZE"; //$NON-NLS-1$
+
+	private static int defaultMinOverviewFontSize= 1;
+
+	private static int defaultOverviewFontSize= defaultMinOverviewFontSize;
+
+	private static int defaultMaxOverviewFontSize= 13;
 
 	/**
 	 * The constructor
@@ -42,10 +46,10 @@ public class OverviewPreferences extends AbstractPreferenceInitializer {
 	@Override
 	public void initializeDefaultPreferences() {
 		if (Platform.getOS().equals(Platform.OS_MACOSX)) {
-			defaultMinOverviewFontSize = 4;
+			defaultMinOverviewFontSize= 4;
 		}
-		defaultOverviewFontSize = defaultMinOverviewFontSize;
-		IPreferenceStore prefs = EditorsPlugin.getDefault().getPreferenceStore();
+		defaultOverviewFontSize= defaultMinOverviewFontSize;
+		IPreferenceStore prefs= EditorsPlugin.getDefault().getPreferenceStore();
 		prefs.setDefault(MIN_OVERVIEW_FONT_SIZE, defaultMinOverviewFontSize);
 		prefs.setDefault(OVERVIEW_FONT_SIZE, defaultOverviewFontSize);
 		prefs.setDefault(MAX_OVERVIEW_FONT_SIZE, defaultMaxOverviewFontSize);

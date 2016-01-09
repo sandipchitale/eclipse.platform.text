@@ -1068,14 +1068,15 @@
    <extension
          point="org.eclipse.ui.views">
       <category
-            id="text.overview"
-            name="Overview">
+            id="org.eclipse.ui.editors.text.overview"
+            name="%org.eclipse.ui.editors.text.overview.view.name"
+            parentCategory="org.eclipse.ui">
       </category>
       <view
       		allowMultiple="false"
-            name="Overview"
+            name="%org.eclipse.ui.editors.text.overview.view.name"
             icon="icons/full/obj16/overview.gif"
-            category="text.overview"
+            category="org.eclipse.ui.editors.text.overview"
             class="org.eclipse.ui.editors.text.overview.OverviewView"
             id="org.eclipse.ui.editors.text.overview.OverviewView"
             restorable="true">
