@@ -1119,6 +1119,16 @@
             id="org.eclipse.ui.editors.text.overview.refresh.command"
             name="Refresh Overview">
       </command>
+      <command
+            id="org.eclipse.ui.editors.text.overview.fontsize"
+            name="Font Size">
+         <commandParameter
+               id="org.eclipse.ui.editors.text.overview.fontsize.size"
+               name="Size"
+               optional="true"
+               values="org.eclipse.ui.editors.text.overview.FontSizeParameterValues">
+         </commandParameter>
+      </command>
    </extension>
    <extension
          point="org.eclipse.ui.commandImages">
@@ -1135,6 +1145,39 @@
             schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
             sequence="M1+M2+M3+O">
       </key>
+      <key
+            commandId="org.eclipse.ui.editors.text.overview.fontsize"
+            contextId="org.eclipse.ui.contexts.window"
+            schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
+            sequence="M1+=">
+         <parameter
+               id="org.eclipse.ui.editors.text.overview.fontsize.size"
+               value="increase"></parameter>
+      </key>
+      <key
+            commandId="org.eclipse.ui.editors.text.overview.fontsize"
+            contextId="org.eclipse.ui.contexts.window"
+            schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
+            sequence="M1+-">
+         <parameter
+               id="org.eclipse.ui.editors.text.overview.fontsize.size"
+               value="decrease"></parameter>
+      </key>
+   </extension>
+   <extension
+         point="org.eclipse.ui.handlers">
+      <handler
+            class="org.eclipse.ui.editors.text.overview.FontSizeHandler"
+            commandId="org.eclipse.ui.editors.text.overview.fontsize">
+         <activeWhen>
+            <with
+                  variable="activePartId">
+               <equals
+                     value="org.eclipse.ui.editors.text.overview.OverviewView">
+               </equals>
+            </with>
+         </activeWhen>
+      </handler>
    </extension>
 
 </plugin>

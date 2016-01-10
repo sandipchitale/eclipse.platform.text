@@ -238,14 +238,7 @@ public class OverviewView extends ViewPart implements ISizeProvider {
 
 			@Override
 			public void widgetSelected(SelectionEvent e) {
-				setOverviewFontSize(scale.getSelection());
-				StyledText styledText= lastOverviewedStyledText;
-				blank();
-				lastFontName= null;
-				lastFontStyle= 0;
-				reconfigureOverviewStyledText(composite);
-				lastOverviewedStyledText= null;
-				trackStyledText(styledText);
+				adjustFontSize(composite);
 			}
 
 			@Override
@@ -257,6 +250,34 @@ public class OverviewView extends ViewPart implements ISizeProvider {
 
 		reconfigureOverviewStyledText(composite);
 
+	}
+
+	private void adjustFontSize(Composite composite) {
+		setOverviewFontSize(scale.getSelection());
+		StyledText styledText= lastOverviewedStyledText;
+		blank();
+		lastFontName= null;
+		lastFontStyle= 0;
+		reconfigureOverviewStyledText(composite);
+		lastOverviewedStyledText= null;
+		trackStyledText(styledText);
+	}
+
+	void changeFontSize(String increaseOrDecrease) {
+		int selection= scale.getSelection();
+		if (FontSizeParameterValues.DECREASE.equals(increaseOrDecrease)) {
+			if (selection > getMinOverviewFontSize()) {
+				selection--;
+				scale.setSelection(selection);
+				adjustFontSize(overviewStyledText.getParent());
+			}
+		} else if (FontSizeParameterValues.INCREASE.equals(increaseOrDecrease)) {
+			if (selection < getMaxOverviewFontSize()) {
+				selection++;
+				scale.setSelection(selection);
+				adjustFontSize(overviewStyledText.getParent());
+			}
+		}
 	}
 
 	private void reconfigureOverviewStyledText(Composite composite) {
@@ -403,8 +424,10 @@ public class OverviewView extends ViewPart implements ISizeProvider {
 		removeListenersLastOverviewedStyledText();
 		lastOverviewedStyledText= null;
 
-		lastFont.dispose();
-		lastFont= null;
+		if (lastFont != null) {
+			lastFont.dispose();
+			lastFont= null;
+		}
 		lastFontName= null;
 
 		focusListenerFilter= null;
