@@ -10,14 +10,16 @@
  *******************************************************************************/
 package org.eclipse.ui.editors.tests;
 
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.fail;
+
 import java.io.BufferedInputStream;
 import java.lang.reflect.Field;
 import java.util.ArrayList;
 
-import junit.framework.Test;
-import junit.framework.TestCase;
-import junit.framework.TestSuite;
-
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
 import org.osgi.framework.Bundle;
 
 import org.eclipse.core.runtime.ContributorFactorySimple;
@@ -40,18 +42,14 @@ import org.eclipse.ui.texteditor.AbstractMarkerAnnotationModel;
 
 import org.eclipse.ui.editors.text.EditorsUI;
 
-public class MarkerAnnotationOrderTest extends TestCase {
+public class MarkerAnnotationOrderTest {
 
 	IContributor pointContributor= null;
 
 	Object masterToken= null;
 
-	public static Test suite() {
-		return new TestSuite(MarkerAnnotationOrderTest.class);
-	}
-
-	@Override
-	protected void setUp() throws Exception {
+	@Before
+	public void setUp() throws Exception {
 		//add the marker updater extension point
 		IExtensionRegistry registry= Platform.getExtensionRegistry();
 		pointContributor= ContributorFactorySimple.createContributor(this);
@@ -71,8 +69,8 @@ public class MarkerAnnotationOrderTest extends TestCase {
 		}
 	}
 
-	@Override
-	protected void tearDown() throws Exception {
+	@After
+	public void tearDown() throws Exception {
 		// remove the marker updater extension point
 		IExtensionRegistry registry= Platform.getExtensionRegistry();
 		IExtension[] extensions = registry.getExtensions(pointContributor);
@@ -80,8 +78,10 @@ public class MarkerAnnotationOrderTest extends TestCase {
 			if ("org.eclipse.ui.editors.markerUpdaters".equals(extensions[i].getExtensionPointUniqueIdentifier()))
 				registry.removeExtension(extensions[i], masterToken);
 		}
+		TestUtil.cleanUp();
 	}
-	
+
+	@Test
 	public void testDirectDependency() {
 		final ArrayList<IStatus> list= new ArrayList<>(2);
 		Bundle bundle= Platform.getBundle(EditorsUI.PLUGIN_ID);

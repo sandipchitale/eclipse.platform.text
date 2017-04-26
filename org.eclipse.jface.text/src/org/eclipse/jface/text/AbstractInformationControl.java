@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2008, 2010 IBM Corporation and others.
+ * Copyright (c) 2008, 2016 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -45,6 +45,7 @@ import org.eclipse.core.runtime.ListenerList;
 
 import org.eclipse.jface.action.ToolBarManager;
 import org.eclipse.jface.internal.text.revisions.Colors;
+import org.eclipse.jface.resource.JFaceColors;
 import org.eclipse.jface.resource.JFaceResources;
 import org.eclipse.jface.util.Geometry;
 
@@ -89,7 +90,7 @@ public abstract class AbstractInformationControl implements IInformationControl,
 	private Font fStatusLabelFont;
 	/**
 	 * Color for the label in the status line or <code>null</code> if none.
-	 * 
+	 *
 	 * @since 3.6
 	 */
 	private Color fStatusLabelForeground;
@@ -101,7 +102,7 @@ public abstract class AbstractInformationControl implements IInformationControl,
 	/** Listener for shell activation and deactivation. */
 	private Listener fShellListener;
 	/** All focus listeners registered to this information control. */
-	private final ListenerList fFocusListeners= new ListenerList(ListenerList.IDENTITY);
+	private final ListenerList<FocusListener> fFocusListeners= new ListenerList<>(ListenerList.IDENTITY);
 
 	/** Size constraints, x is the maxWidth and y is the maxHeight, or <code>null</code> if not set. */
 	private Point fSizeConstraints;
@@ -181,8 +182,9 @@ public abstract class AbstractInformationControl implements IInformationControl,
 		fResizable= (shellStyle & SWT.RESIZE) != 0;
 		fShell= new Shell(parentShell, shellStyle);
 		Display display= fShell.getDisplay();
-		Color foreground= display.getSystemColor(SWT.COLOR_INFO_FOREGROUND);
-		Color background= display.getSystemColor(SWT.COLOR_INFO_BACKGROUND);
+
+		Color foreground= JFaceColors.getInformationViewerForegroundColor(display);
+		Color background= JFaceColors.getInformationViewerBackgroundColor(display);
 		setColor(fShell, foreground, background);
 
 		GridLayout layout= new GridLayout(1, false);
@@ -197,7 +199,7 @@ public abstract class AbstractInformationControl implements IInformationControl,
 		setColor(fContentComposite, foreground, background);
 
 		createStatusComposite(statusFieldText, toolBarManager, foreground, background);
-		
+
 		addDisposeListener(new DisposeListener() {
 			@Override
 			public void widgetDisposed(DisposeEvent e) {
@@ -236,12 +238,12 @@ public abstract class AbstractInformationControl implements IInformationControl,
 		fStatusLabel.setText(statusFieldText);
 
 		FontData[] fontDatas= JFaceResources.getDialogFont().getFontData();
-		for (int i= 0; i < fontDatas.length; i++) {
-			fontDatas[i].setHeight(fontDatas[i].getHeight() * 9 / 10);
+		for (FontData fontData : fontDatas) {
+			fontData.setHeight(fontData.getHeight() * 9 / 10);
 		}
 		fStatusLabelFont= new Font(fStatusLabel.getDisplay(), fontDatas);
 		fStatusLabel.setFont(fStatusLabelFont);
-		
+
 		fStatusLabelForeground= new Color(fStatusLabel.getDisplay(), Colors.blend(background.getRGB(), foreground.getRGB(), 0.56f));
 		setColor(fStatusLabel, fStatusLabelForeground, background);
 		setColor(fStatusComposite, foreground, background);
@@ -475,7 +477,7 @@ public abstract class AbstractInformationControl implements IInformationControl,
 	 * The given <code>parent</code> comes with a {@link FillLayout}. Subclasses may set a different
 	 * layout.
 	 * </p>
-	 * 
+	 *
 	 * @param parent the container of the content
 	 */
 	protected abstract void createContent(Composite parent);
@@ -522,7 +524,7 @@ public abstract class AbstractInformationControl implements IInformationControl,
 	/**
 	 * Frees all resources allocated by this information control. Internally called when the
 	 * information control's shell has been disposed.
-	 * 
+	 *
 	 * @since 3.6
 	 */
 	protected void handleDispose() {
@@ -670,9 +672,7 @@ public abstract class AbstractInformationControl implements IInformationControl,
 
 				@Override
 				public void handleEvent(Event event) {
-					Object[] listeners= fFocusListeners.getListeners();
-					for (int i= 0; i < listeners.length; i++) {
-						FocusListener focusListener= (FocusListener)listeners[i];
+					for (FocusListener focusListener : fFocusListeners) {
 						if (event.type == SWT.Activate) {
 							focusListener.focusGained(new FocusEvent(event));
 						} else {

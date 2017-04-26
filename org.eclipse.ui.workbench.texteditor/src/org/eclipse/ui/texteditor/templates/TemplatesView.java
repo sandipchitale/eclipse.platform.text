@@ -60,14 +60,14 @@ import org.eclipse.ui.texteditor.IAbstractTextEditorHelpContextIds;
  *       point="org.eclipse.ui.views"&gt;
  *    &lt;view
  *          name="%templatesViewName"
- *          icon="$nl$/icons/full/eview16/templates.gif"
+ *          icon="$nl$/icons/full/eview16/templates.png"
  *          category="org.eclipse.ui"
  *          class="org.eclipse.ui.texteditor.templates.TemplatesView"
  *          id="org.eclipse.ui.texteditor.TemplatesView"&gt;
  *    &lt;/view&gt;
  * &lt/extension>
  * </pre>
- * The <code>templates.gif</code> icon can be copied from this plug-in.
+ * The <code>templates.png</code> icon can be copied from this plug-in.
  * </p>
  * If the editor supports a templates page, the editor instantiates and configures the page, and
  * returns it. This page is then added to this Templates view and immediately made the current page
@@ -160,7 +160,7 @@ public final class TemplatesView extends PageBookView {
 
 	/**
 	 * Returns the template store of the current page.
-	 * 
+	 *
 	 * @return the template store, or <code>null</code> if the current page does not provide that
 	 *         information
 	 * @since 3.6
@@ -174,7 +174,7 @@ public final class TemplatesView extends PageBookView {
 
 	/**
 	 * Returns the currently selected templates.
-	 * 
+	 *
 	 * @return array of selected templates, or <code>null</code> if the current page does not
 	 *         provide that information
 	 * @since 3.6

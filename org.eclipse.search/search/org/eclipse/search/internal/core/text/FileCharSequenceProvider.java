@@ -154,7 +154,7 @@ public class FileCharSequenceProvider {
 
 		/**
 		 * Fills the buffer by reading from the given reader.
-		 * 
+		 *
 		 * @param reader the reader to read from
 		 * @param pos the offset of the reader in the file
 		 * @return returns true if the end of the file has been reached
@@ -375,7 +375,7 @@ public class FileCharSequenceProvider {
 				boolean endReached= buffer.fill(fReader, fReaderPos);
 				fReaderPos= buffer.getEndOffset();
 				if (endReached) {
-					fLength= new Integer(fReaderPos); // at least we know the size of the file now
+					fLength= Integer.valueOf(fReaderPos); // at least we know the size of the file now
 					fReaderPos= Integer.MAX_VALUE; // will have to reset next time
 					return true;
 				}

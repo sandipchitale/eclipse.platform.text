@@ -23,7 +23,7 @@ import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.MultiStatus;
 import org.eclipse.core.runtime.OperationCanceledException;
 import org.eclipse.core.runtime.Status;
-import org.eclipse.core.runtime.SubProgressMonitor;
+import org.eclipse.core.runtime.SubMonitor;
 import org.eclipse.core.runtime.jobs.ISchedulingRule;
 
 import org.eclipse.core.resources.IFile;
@@ -48,7 +48,7 @@ public abstract class ResourceFileBuffer extends AbstractFileBuffer {
 		 * that a element change failed message is sent out to the element state
 		 * listeners in case an exception occurred.
 		 */
-		private class SafeFileChange implements Runnable {
+		private abstract class SafeFileChange implements Runnable {
 
 			/**
 			 * Creates a new safe runnable for the given file.
@@ -62,8 +62,7 @@ public abstract class ResourceFileBuffer extends AbstractFileBuffer {
 			 *
 			 * @exception Exception in case of error
 			 */
-			protected void execute() throws Exception {
-			}
+			protected abstract void execute() throws Exception;
 
 			/**
 			 * Does everything necessary prior to execution.
@@ -227,34 +226,28 @@ public abstract class ResourceFileBuffer extends AbstractFileBuffer {
 
 	@Override
 	public void create(IPath location, IProgressMonitor monitor) throws CoreException {
-		monitor= Progress.getMonitor(monitor);
-		monitor.beginTask(FileBuffersMessages.ResourceFileBuffer_task_creatingFileBuffer, 2);
+		SubMonitor subMonitor= SubMonitor.convert(monitor, FileBuffersMessages.ResourceFileBuffer_task_creatingFileBuffer, 2);
 
-		try {
-			IWorkspaceRoot workspaceRoot= ResourcesPlugin.getWorkspace().getRoot();
-			IFile file= workspaceRoot.getFile(location);
-			URI uri= file.getLocationURI();
-			if (uri == null) {
-				String message= NLSUtility.format(FileBuffersMessages.ResourceFileBuffer_error_cannot_determine_URI, location);
-				throw new CoreException(new Status(IStatus.ERROR, FileBuffersPlugin.PLUGIN_ID, IStatus.OK, message, null));
-			}
-
-			fLocation= location;
-			fFile= file;
-			fFileStore= EFS.getStore(uri);
-			fFileSynchronizer= new FileSynchronizer();
-
-			SubProgressMonitor subMonitor= new SubProgressMonitor(monitor, 1);
-			initializeFileBufferContent(subMonitor);
-			subMonitor.done();
-
-			fSynchronizationStamp= fFile.getModificationStamp();
-
-			addFileBufferContentListeners();
-
-		} finally {
-			monitor.done();
+		IWorkspaceRoot workspaceRoot= ResourcesPlugin.getWorkspace().getRoot();
+		IFile file= workspaceRoot.getFile(location);
+		URI uri= file.getLocationURI();
+		if (uri == null) {
+			String message= NLSUtility.format(FileBuffersMessages.ResourceFileBuffer_error_cannot_determine_URI, location);
+			throw new CoreException(new Status(IStatus.ERROR, FileBuffersPlugin.PLUGIN_ID, IStatus.OK, message, null));
 		}
+
+		fLocation= location;
+		fFile= file;
+		fFileStore= EFS.getStore(uri);
+		fFileSynchronizer= new FileSynchronizer();
+
+		initializeFileBufferContent(subMonitor.split(1));
+
+		fSynchronizationStamp= fFile.getModificationStamp();
+
+		addFileBufferContentListeners();
+		subMonitor.split(1);
+
 	}
 
 	@Override
@@ -445,6 +438,7 @@ public abstract class ResourceFileBuffer extends AbstractFileBuffer {
 		try {
 			fFile.refreshLocal(IResource.DEPTH_INFINITE, monitor);
 		} catch (OperationCanceledException x) {
+			// Ignore
 		} catch (CoreException x) {
 			handleCoreException(x);
 		}

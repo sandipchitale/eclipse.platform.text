@@ -156,7 +156,7 @@ public class TextPresentation {
 	/**
 	 * Creates a new empty text presentation. <code>sizeHint</code> tells the expected size of this
 	 * presentation.
-	 * 
+	 *
 	 * @param sizeHint the expected size of this presentation, must be positive
 	 */
 	public TextPresentation(int sizeHint) {
@@ -167,7 +167,7 @@ public class TextPresentation {
 	/**
 	 * Creates a new empty text presentation with the given extent. <code>sizeHint</code> tells the
 	 * expected size of this presentation.
-	 * 
+	 *
 	 * @param extent the extent of the created <code>TextPresentation</code>
 	 * @param sizeHint the expected size of this presentation, must be positive
 	 * @since 3.0
@@ -407,8 +407,7 @@ public class TextPresentation {
 		int j= 0;
 		ArrayList<StyleRange> oldRanges= fRanges;
 		ArrayList<StyleRange> newRanges= new ArrayList<>(2*ranges.length + oldRanges.size());
-		for (int i= 0, n= ranges.length; i < n; i++) {
-			StyleRange range= ranges[i];
+		for (StyleRange range : ranges) {
 			fRanges= oldRanges; // for getFirstIndexAfterWindow(...)
 			for (int m= getFirstIndexAfterWindow(new Region(range.start, range.length)); j < m; j++)
 				newRanges.add(oldRanges.get(j));

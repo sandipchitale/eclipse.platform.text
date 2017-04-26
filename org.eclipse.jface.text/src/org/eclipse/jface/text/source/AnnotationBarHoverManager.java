@@ -472,9 +472,9 @@ public class AnnotationBarHoverManager extends AbstractHoverInformationControlMa
 	private IRegion findRegionContainingLine(IRegion[] regions, int line) throws BadLocationException {
 		IDocument document= fSourceViewer.getDocument();
 		IRegion lineInfo= document.getLineInformation(line);
-		for (int i= 0; i < regions.length; i++) {
-			if (TextUtilities.overlaps(regions[i], lineInfo))
-				return regions[i];
+		for (IRegion region : regions) {
+			if (TextUtilities.overlaps(region, lineInfo))
+				return region;
 		}
 		return null;
 	}
@@ -664,7 +664,7 @@ public class AnnotationBarHoverManager extends AbstractHoverInformationControlMa
 		}
 		return super.computeInformationControlLocation(subjectArea, controlSize);
 	}
-	
+
 	@Override
 	protected Point computeLocation(Rectangle subjectArea, Point controlSize, Anchor anchor) {
 		MouseEvent event= getHoverEvent();

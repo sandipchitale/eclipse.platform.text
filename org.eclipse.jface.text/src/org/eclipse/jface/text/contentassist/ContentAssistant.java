@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2015 IBM Corporation and others.
+ * Copyright (c) 2000, 2017 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -11,13 +11,15 @@
  *     Anton Leherbauer (Wind River Systems) - [content assist][api] ContentAssistEvent should contain information about auto activation - https://bugs.eclipse.org/bugs/show_bug.cgi?id=193728
  *     Marcel Bruch, bruch@cs.tu-darmstadt.de - [content assist] Allow to re-sort proposals - https://bugs.eclipse.org/bugs/show_bug.cgi?id=350991
  *     John Glassmyer, jogl@google.com - catch Content Assist exceptions to protect navigation keys - http://bugs.eclipse.org/434901
+ *     Mickael Istria (Red Hat Inc.) - [251156] Allow multiple contentAssitProviders internally & inheritance
  *******************************************************************************/
 package org.eclipse.jface.text.contentassist;
 
+import java.util.Collections;
 import java.util.HashMap;
-import java.util.Iterator;
+import java.util.LinkedHashSet;
 import java.util.Map;
-import java.util.Map.Entry;
+import java.util.Set;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.SWTError;
@@ -79,8 +81,11 @@ import org.eclipse.jface.text.TextUtilities;
 
 
 /**
- * The standard implementation of the <code>IContentAssistant</code> interface. Usually, clients
+ * The standard implementation of the {@link IContentAssistant} interface. Usually, clients
  * instantiate this class and configure it before using it.
+ * 
+ * Since 3.12, it can compute and display the proposals asynchronously when invoking
+ * {@link #ContentAssistant(boolean)} with <code>true</code>.
  */
 public class ContentAssistant implements IContentAssistant, IContentAssistantExtension, IContentAssistantExtension2, IContentAssistantExtension3, IContentAssistantExtension4, IWidgetTokenKeeper, IWidgetTokenKeeperExtension {
 
@@ -293,9 +298,10 @@ public class ContentAssistant implements IContentAssistant, IContentAssistantExt
 
 		private boolean contains(char[] characters, char character) {
 			if (characters != null) {
-				for (int i= 0; i < characters.length; i++) {
-					if (character == characters[i])
+				for (char c : characters) {
+					if (character == c) {
 						return true;
+					}
 				}
 			}
 			return false;
@@ -763,9 +769,7 @@ public class ContentAssistant implements IContentAssistant, IContentAssistantExt
 			Monitor[] monitors = toSearch.getMonitors();
 			Monitor result = monitors[0];
 
-			for (int idx = 0; idx < monitors.length; idx++) {
-				Monitor current = monitors[idx];
-
+			for (Monitor current : monitors) {
 				Rectangle clientArea = current.getClientArea();
 
 				if (clientArea.contains(toFind)) {
@@ -817,9 +821,9 @@ public class ContentAssistant implements IContentAssistant, IContentAssistantExt
 			installKeyListener();
 
 			IContentAssistListener[] listeners= fListeners.clone();
-			for (int i= 0; i < listeners.length; i++) {
-				if (listeners[i] != null) {
-					listeners[i].processEvent(event);
+			for (IContentAssistListener listener : listeners) {
+				if (listener != null) {
+					listener.processEvent(event);
 					if (!event.doit)
 						return;
 				}
@@ -856,28 +860,28 @@ public class ContentAssistant implements IContentAssistant, IContentAssistantExt
 
 	/**
 	 * Dialog store constant for the x-size of the completion proposal pop-up
-	 * 
+	 *
 	 * @since 3.0
 	 */
 	public static final String STORE_SIZE_X= "size.x"; //$NON-NLS-1$
 
 	/**
 	 * Dialog store constant for the y-size of the completion proposal pop-up
-	 * 
+	 *
 	 * @since 3.0
 	 */
 	public static final String STORE_SIZE_Y= "size.y"; //$NON-NLS-1$
-	
+
 	/**
 	 * Dialog store constant for the x-size of the context selector pop-up
-	 * 
+	 *
 	 * @since 3.9
 	 */
 	public static final String STORE_CONTEXT_SELECTOR_POPUP_SIZE_X= "contextSelector.size.x"; //$NON-NLS-1$
-	
+
 	/**
 	 * Dialog store constant for the y-size of the context selector pop-up
-	 * 
+	 *
 	 * @since 3.9
 	 */
 	public static final String STORE_CONTEXT_SELECTOR_POPUP_SIZE_Y= "contextSelector.size.y"; //$NON-NLS-1$
@@ -900,13 +904,15 @@ public class ContentAssistant implements IContentAssistant, IContentAssistantExt
 	private static final String COMPLETION_ERROR_MESSAGE_KEY= "ContentAssistant.error_computing_completion"; //$NON-NLS-1$
 	private static final String CONTEXT_ERROR_MESSAGE_KEY= "ContentAssistant.error_computing_context"; //$NON-NLS-1$
 
+	private BoldStylerProvider fBoldStylerProvider;
+
 	private IInformationControlCreator fInformationControlCreator;
 	private int fAutoActivationDelay= DEFAULT_AUTO_ACTIVATION_DELAY;
 	private boolean fIsAutoActivated= false;
 	private boolean fIsAutoInserting= false;
 	private int fProposalPopupOrientation= PROPOSAL_OVERLAY;
 	private int fContextInfoPopupOrientation= CONTEXT_INFO_ABOVE;
-	private Map<String, IContentAssistProcessor> fProcessors;
+	private Map<String, Set<IContentAssistProcessor>> fProcessors;
 
 	/**
 	 * The partitioning.
@@ -980,7 +986,7 @@ public class ContentAssistant implements IContentAssistant, IContentAssistantExt
 	 *
 	 * @since 3.2
 	 */
-	private ListenerList fCompletionListeners= new ListenerList(ListenerList.IDENTITY);
+	private ListenerList<ICompletionListener> fCompletionListeners= new ListenerList<>(ListenerList.IDENTITY);
 	/**
 	 * The message to display at the bottom of the proposal popup.
 	 *
@@ -1035,10 +1041,17 @@ public class ContentAssistant implements IContentAssistant, IContentAssistantExt
 	/**
 	 * The sorter to be used for sorting the proposals or <code>null</code> if no sorting is
 	 * requested.
-	 * 
+	 *
 	 * @since 3.8
 	 */
 	private ICompletionProposalSorter fSorter;
+
+	/**
+	 * Tells whether this content assistant allows to run asynchronous
+	 * 
+	 * @since 3.12
+	 */
+	private boolean fAsynchronous;
 
 	/**
 	 * Creates a new content assistant. The content assistant is not automatically activated,
@@ -1048,7 +1061,23 @@ public class ContentAssistant implements IContentAssistant, IContentAssistantExt
 	 * milliseconds delay. It uses the default partitioning.
 	 */
 	public ContentAssistant() {
+		this(false);
+	}
+
+	/**
+	 * Creates a new content assistant. The content assistant is not automatically activated,
+	 * overlays the completion proposals with context information list if necessary, and shows the
+	 * context information above the location at which it was activated. If auto activation will be
+	 * enabled, without further configuration steps, this content assistant is activated after a 500
+	 * milliseconds delay. It uses the default partitioning.
+	 * 
+	 * @param asynchronous <true> if this content assistant should present the proposals
+	 *            asynchronously, <code>false</code> otherwise
+	 * @since 3.12
+	 */
+	public ContentAssistant(boolean asynchronous) {
 		fPartitioning= IDocumentExtension3.DEFAULT_PARTITIONING;
+		fAsynchronous= asynchronous;
 	}
 
 	/**
@@ -1085,7 +1114,32 @@ public class ContentAssistant implements IContentAssistant, IContentAssistantExt
 		if (processor == null)
 			fProcessors.remove(contentType);
 		else
-			fProcessors.put(contentType, processor);
+			fProcessors.put(contentType, Collections.singleton(processor));
+	}
+	
+	/**
+	 * Registers a given content assist processor for a particular content type. If there is already
+	 * a processor registered for this type, it is kept and the new processor is appended to the list
+	 * of processors for given content-type.
+	 *
+	 * @param processor The content-assist process to add
+	 * @param contentType Document token content-type it applies to
+	 * @since 3.12
+	 */
+	public void addContentAssistProcessor(IContentAssistProcessor processor, String contentType) {
+		Assert.isNotNull(contentType);
+
+		if (fProcessors == null)
+			fProcessors= new HashMap<>();
+
+		if (processor == null) {
+			fProcessors.remove(contentType);
+		} else {
+			if (!fProcessors.containsKey(contentType)) {
+				fProcessors.put(contentType, new LinkedHashSet<>());
+			}
+			fProcessors.get(contentType).add(processor);
+		}
 	}
 
 	/*
@@ -1096,7 +1150,32 @@ public class ContentAssistant implements IContentAssistant, IContentAssistantExt
 		if (fProcessors == null)
 			return null;
 
-		return fProcessors.get(contentType);
+		Set<IContentAssistProcessor> res = fProcessors.get(contentType);
+		if (res == null || res.isEmpty()) {
+			return null;
+		} else {
+			return res.iterator().next(); // return first one although there might be multiple ones... TODO, consider an aggregator contentAssistProcessor to return here
+		}
+	}
+
+	/**
+	 * Returns the content assist processors to be used for the given content type.
+	 *
+	 * @param contentType the type of the content for which this content assistant is to be
+	 *            requested
+	 * @return the content assist processors or <code>null</code> if none exists for the specified
+	 *         content type
+	 * @since 3.12
+	 */
+	Set<IContentAssistProcessor> getContentAssistProcessors(String contentType) {
+		if (fProcessors == null)
+			return null;
+
+		Set<IContentAssistProcessor> res = fProcessors.get(contentType);
+		if (res == null || res.isEmpty()) {
+			return null;
+		}
+		return res;
 	}
 
 	/**
@@ -1110,16 +1189,15 @@ public class ContentAssistant implements IContentAssistant, IContentAssistantExt
 			return ""; //$NON-NLS-1$
 
 		StringBuffer buf= new StringBuffer(5);
-		Iterator<Entry<String, IContentAssistProcessor>> iter= fProcessors.entrySet().iterator();
-		while (iter.hasNext()) {
-			Entry<String, IContentAssistProcessor> entry= iter.next();
-			IContentAssistProcessor processor= entry.getValue();
-			char[] triggers= processor.getCompletionProposalAutoActivationCharacters();
-			if (triggers != null)
-				buf.append(triggers);
-			triggers= processor.getContextInformationAutoActivationCharacters();
-			if (triggers != null)
-				buf.append(triggers);
+		for (Set<IContentAssistProcessor> processorsForContentType : fProcessors.values()) {
+			for (IContentAssistProcessor processor : processorsForContentType) {
+				char[] triggers= processor.getCompletionProposalAutoActivationCharacters();
+				if (triggers != null)
+					buf.append(triggers);
+				triggers= processor.getContextInformationAutoActivationCharacters();
+				if (triggers != null)
+					buf.append(triggers);
+			}
 		}
 		return buf.toString();
 	}
@@ -1198,7 +1276,7 @@ public class ContentAssistant implements IContentAssistant, IContentAssistantExt
 	/**
 	 * Sets the delay after which the content assistant is automatically invoked if the cursor is
 	 * behind an auto activation character.
-	 * 
+	 *
 	 * @param delay the auto activation delay (as of 3.6 a negative argument will be set to 0)
 	 */
 	public void setAutoActivationDelay(int delay) {
@@ -1208,7 +1286,7 @@ public class ContentAssistant implements IContentAssistant, IContentAssistantExt
 	/**
 	 * Gets the delay after which the content assistant is automatically invoked if the cursor is
 	 * behind an auto activation character.
-	 * 
+	 *
 	 * @return the auto activation delay (will not be negative)
 	 * @since 3.4
 	 */
@@ -1346,6 +1424,32 @@ public class ContentAssistant implements IContentAssistant, IContentAssistantExt
 	}
 
 	/**
+	 * Sets the {@link BoldStylerProvider} used to emphasize matches in a proposal's styled display
+	 * string.
+	 *
+	 * @param boldStylerProvider the bold styler provider
+	 *
+	 * @see ICompletionProposalExtension7#getStyledDisplayString(IDocument, int, BoldStylerProvider)
+	 * @since 3.11
+	 */
+	void setBoldStylerProvider(BoldStylerProvider boldStylerProvider) {
+		fBoldStylerProvider= boldStylerProvider;
+	}
+
+	/**
+	 * Returns the {@link BoldStylerProvider} used to emphasize matches in a proposal's styled
+	 * display string.
+	 *
+	 * @see ICompletionProposalExtension7#getStyledDisplayString(IDocument, int, BoldStylerProvider)
+	 *
+	 * @return the {@link BoldStylerProvider}, or <code>null</code> if not set
+	 * @since 3.11
+	 */
+	BoldStylerProvider getBoldStylerProvider() {
+		return fBoldStylerProvider;
+	}
+
+	/**
 	 * Sets the context selector's background color.
 	 *
 	 * @param background the background color
@@ -1426,7 +1530,7 @@ public class ContentAssistant implements IContentAssistant, IContentAssistantExt
 			controller= new AdditionalInfoController(fInformationControlCreator, OpenStrategy.getPostSelectionDelay());
 
 		fContextInfoPopup= fContentAssistSubjectControlAdapter.createContextInfoPopup(this);
-		fProposalPopup= fContentAssistSubjectControlAdapter.createCompletionProposalPopup(this, controller);
+		fProposalPopup= fContentAssistSubjectControlAdapter.createCompletionProposalPopup(this, controller, fAsynchronous);
 		fProposalPopup.setSorter(fSorter);
 
 		registerHandler(SELECT_NEXT_PROPOSAL_COMMAND_ID, fProposalPopup.createProposalSelectionHandler(CompletionProposalPopup.ProposalSelectionHandler.SELECT_NEXT));
@@ -1453,6 +1557,12 @@ public class ContentAssistant implements IContentAssistant, IContentAssistantExt
 	@Override
 	public void uninstall() {
 		hide();
+
+		if (fBoldStylerProvider != null) {
+			fBoldStylerProvider.dispose();
+			fBoldStylerProvider= null;
+		}
+
 		manageAutoActivation(false);
 
 		if (fHandlers != null) {
@@ -1736,7 +1846,7 @@ public class ContentAssistant implements IContentAssistant, IContentAssistantExt
 				return false;
 			}
 		}
-		
+
 		promoteKeyListener();
 		fireSessionBeginEvent(isAutoActivated);
 		return true;
@@ -1848,7 +1958,7 @@ public class ContentAssistant implements IContentAssistant, IContentAssistantExt
 	 *
 	 * @param contentAssistSubjectControl the content assist subject control
 	 * @param offset a document offset
-	 * @return an array of completion proposals
+	 * @return an array of completion proposals or <code>null</code> if no proposals are possible
 	 * @see IContentAssistProcessor#computeCompletionProposals(ITextViewer, int)
 	 * @since 3.0
 	 */
@@ -2149,7 +2259,7 @@ public class ContentAssistant implements IContentAssistant, IContentAssistantExt
 	 * <li>{@link ContentAssistant#STORE_CONTEXT_SELECTOR_POPUP_SIZE_Y}</li>
 	 * </ul>
 	 * </p>
-	 * 
+	 *
 	 * @param dialogSettings the dialog settings
 	 * @since 3.0
 	 */
@@ -2175,7 +2285,7 @@ public class ContentAssistant implements IContentAssistant, IContentAssistantExt
 
 	/**
 	 * Stores the content assist's context selector pop-up size.
-	 * 
+	 *
 	 * @since 3.9
 	 */
 	protected void storeContextSelectorPopupSize() {
@@ -2192,7 +2302,7 @@ public class ContentAssistant implements IContentAssistant, IContentAssistantExt
 
 	/**
 	 * Restores the content assist's proposal pop-up size.
-	 * 
+	 *
 	 * @return the stored size or <code>null</code> if none
 	 * @since 3.0
 	 */
@@ -2241,7 +2351,7 @@ public class ContentAssistant implements IContentAssistant, IContentAssistantExt
 
 	/**
 	 * Restores the content assist's context selector pop-up size.
-	 * 
+	 *
 	 * @return the stored size or <code>null</code> if none
 	 * @since 3.9
 	 */
@@ -2286,7 +2396,7 @@ public class ContentAssistant implements IContentAssistant, IContentAssistantExt
 	/**
 	 * Sets the prefix completion property. If enabled, content assist delegates completion to
 	 * prefix completion.
-	 * 
+	 *
 	 * @param enabled <code>true</code> to enable prefix completion, <code>false</code> to
 	 *        disable
 	 */
@@ -2335,9 +2445,7 @@ public class ContentAssistant implements IContentAssistant, IContentAssistantExt
 		if (fContentAssistSubjectControlAdapter != null && !isProposalPopupActive()) {
 			IContentAssistProcessor processor= getProcessor(fContentAssistSubjectControlAdapter, fContentAssistSubjectControlAdapter.getSelectedRange().x);
 			ContentAssistEvent event= new ContentAssistEvent(this, processor, isAutoActivated);
-			Object[] listeners= fCompletionListeners.getListeners();
-			for (int i= 0; i < listeners.length; i++) {
-				ICompletionListener listener= (ICompletionListener)listeners[i];
+			for (ICompletionListener listener : fCompletionListeners) {
 				listener.assistSessionStarted(event);
 			}
 		}
@@ -2352,9 +2460,7 @@ public class ContentAssistant implements IContentAssistant, IContentAssistantExt
 		if (fContentAssistSubjectControlAdapter != null) {
 			IContentAssistProcessor processor= getProcessor(fContentAssistSubjectControlAdapter, fContentAssistSubjectControlAdapter.getSelectedRange().x);
 			ContentAssistEvent event= new ContentAssistEvent(this, processor);
-			Object[] listeners= fCompletionListeners.getListeners();
-			for (int i= 0; i < listeners.length; i++) {
-				ICompletionListener listener= (ICompletionListener)listeners[i];
+			for (ICompletionListener listener : fCompletionListeners) {
 				if (listener instanceof ICompletionListenerExtension)
 					((ICompletionListenerExtension)listener).assistSessionRestarted(event);
 			}
@@ -2370,9 +2476,7 @@ public class ContentAssistant implements IContentAssistant, IContentAssistantExt
 		if (fContentAssistSubjectControlAdapter != null) {
 			IContentAssistProcessor processor= getProcessor(fContentAssistSubjectControlAdapter, fContentAssistSubjectControlAdapter.getSelectedRange().x);
 			ContentAssistEvent event= new ContentAssistEvent(this, processor);
-			Object[] listeners= fCompletionListeners.getListeners();
-			for (int i= 0; i < listeners.length; i++) {
-				ICompletionListener listener= (ICompletionListener)listeners[i];
+			for (ICompletionListener listener : fCompletionListeners) {
 				listener.assistSessionEnded(event);
 			}
 		}
@@ -2464,23 +2568,19 @@ public class ContentAssistant implements IContentAssistant, IContentAssistantExt
 	 * @since 3.2
 	 */
 	void fireSelectionEvent(ICompletionProposal proposal, boolean smartToggle) {
-		Object[] listeners= fCompletionListeners.getListeners();
-		for (int i= 0; i < listeners.length; i++) {
-			ICompletionListener listener= (ICompletionListener)listeners[i];
+		for (ICompletionListener listener : fCompletionListeners) {
 			listener.selectionChanged(proposal, smartToggle);
 		}
 	}
 
 	/**
 	 * Fires an event after applying a proposal, see {@link ICompletionListenerExtension2}.
-	 * 
+	 *
 	 * @param proposal the applied proposal
 	 * @since 3.8
 	 */
 	void fireAppliedEvent(ICompletionProposal proposal) {
-		Object[] listeners= fCompletionListeners.getListeners();
-		for (int i= 0; i < listeners.length; i++) {
-			ICompletionListener listener= (ICompletionListener)listeners[i];
+		for (ICompletionListener listener : fCompletionListeners) {
 			if (listener instanceof ICompletionListenerExtension2)
 				((ICompletionListenerExtension2)listener).applied(proposal);
 		}
@@ -2580,7 +2680,7 @@ public class ContentAssistant implements IContentAssistant, IContentAssistantExt
 
 	/**
 	 * Sets the proposal sorter.
-	 * 
+	 *
 	 * @param sorter the sorter to be used, or <code>null</code> if no sorting is requested
 	 * @since 3.8
 	 */

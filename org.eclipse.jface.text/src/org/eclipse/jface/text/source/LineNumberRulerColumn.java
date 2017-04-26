@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2015 IBM Corporation and others.
+ * Copyright (c) 2000, 2016 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -10,6 +10,7 @@
  *     Nikolay Botev <bono8106@hotmail.com> - [rulers] Shift clicking in line number column doesn't select range - https://bugs.eclipse.org/bugs/show_bug.cgi?id=32166
  *     Nikolay Botev <bono8106@hotmail.com> - [rulers] Clicking in line number ruler should not trigger annotation ruler - https://bugs.eclipse.org/bugs/show_bug.cgi?id=40889
  *     Florian Weßling <flo@cdhq.de> - [rulers] Line numbering was wrong when word wrap was active - https://bugs.eclipse.org/bugs/show_bug.cgi?id=35779
+ *     Rüdiger Herrmann - Insufficient is-disposed check in LineNumberRulerColumn::redraw - https://bugs.eclipse.org/bugs/show_bug.cgi?id=506427
  *******************************************************************************/
 package org.eclipse.jface.text.source;
 
@@ -840,7 +841,12 @@ public class LineNumberRulerColumn implements IVerticalRulerColumn {
 		int widgetLine= JFaceTextUtil.modelLineToWidgetLine(fCachedTextViewer, line);
 
 		String s= createDisplayString(line);
-		int indentation= fIndentation[s.length()];
+		int index= s.length();
+		if (index >= fIndentation.length) {
+			// Bug 325434: our data is not in-sync with the document, don't try to paint
+			return;
+		}
+		int indentation= fIndentation[index];
 		int baselineBias= getBaselineBias(gc, widgetLine);
 		gc.drawString(s, indentation, y + baselineBias, true);
 	}
@@ -872,16 +878,20 @@ public class LineNumberRulerColumn implements IVerticalRulerColumn {
 			return;
 		}
 
-		if (fCachedTextViewer != null && fCanvas != null && !fCanvas.isDisposed()) {
-			if (VerticalRuler.IS_MAC_BUG_298936) {
+		if (!isDisposed()) {
+			if (VerticalRuler.AVOID_NEW_GC) {
 				fCanvas.redraw();
-				fCanvas.update();
 			} else {
 				GC gc= new GC(fCanvas);
 				doubleBufferPaint(gc);
 				gc.dispose();
 			}
 		}
+	}
+
+	private boolean isDisposed() {
+		return fCachedTextViewer == null || fCanvas == null || fCanvas.isDisposed()
+				|| fCachedTextViewer.getTextWidget() == null;
 	}
 
 	@Override
@@ -911,7 +921,7 @@ public class LineNumberRulerColumn implements IVerticalRulerColumn {
 
 	/**
 	 * Handles mouse scrolled events on the ruler by forwarding them to the text widget.
-	 * 
+	 *
 	 * @param e the mouse event
 	 * @since 3.10
 	 */

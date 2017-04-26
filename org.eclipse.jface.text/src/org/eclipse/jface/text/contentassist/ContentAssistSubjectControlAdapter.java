@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2010 IBM Corporation and others.
+ * Copyright (c) 2000, 2017 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -7,6 +7,7 @@
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
+ *     Mickael Istria (Red Hat Inc.) - [251156] Allow multiple contentAssitProviders internally & inheritance
  *******************************************************************************/
 package org.eclipse.jface.text.contentassist;
 
@@ -36,17 +37,17 @@ import org.eclipse.jface.text.contentassist.ContextInformationPopup.ContextFrame
  *
  * @since 3.0
  */
-final class ContentAssistSubjectControlAdapter implements IContentAssistSubjectControl {
+class ContentAssistSubjectControlAdapter implements IContentAssistSubjectControl {
 
 	/**
 	 * The text viewer which is used as content assist subject control.
 	 */
-	private ITextViewer fViewer;
+	protected ITextViewer fViewer;
 
 	/**
 	 * The content assist subject control.
 	 */
-	private IContentAssistSubjectControl fContentAssistSubjectControl;
+	protected IContentAssistSubjectControl fContentAssistSubjectControl;
 
 
 	/**
@@ -260,17 +261,24 @@ final class ContentAssistSubjectControlAdapter implements IContentAssistSubjectC
 	}
 
 	/**
-	* Creates and returns a completion proposal popup for the given content assistant.
-	*
-	* @param contentAssistant the content assistant
-	* @param controller the additional info controller, or <code>null</code>
-	* @return the completion proposal popup
-	*/
-	CompletionProposalPopup createCompletionProposalPopup(ContentAssistant contentAssistant, AdditionalInfoController controller) {
-		if (fContentAssistSubjectControl != null)
-			return new CompletionProposalPopup(contentAssistant, fContentAssistSubjectControl, controller);
-		return new CompletionProposalPopup(contentAssistant, fViewer, controller);
-
+	 * Creates and returns a completion proposal popup for the given content assistant.
+	 *
+	 * @param contentAssistant the content assistant
+	 * @param controller the additional info controller, or <code>null</code>
+	 * @param asynchronous <true> if this content assistant should present the proposals
+	 *            asynchronously, <code>false</code> otherwise
+	 * @return the completion proposal popup
+	 */
+	CompletionProposalPopup createCompletionProposalPopup(ContentAssistant contentAssistant, AdditionalInfoController controller, boolean asynchronous) {
+		if (asynchronous) {
+			if (fContentAssistSubjectControl != null)
+				return new AsyncCompletionProposalPopup(contentAssistant, fContentAssistSubjectControl, controller);
+			return new AsyncCompletionProposalPopup(contentAssistant, fViewer, controller);
+		} else {
+			if (fContentAssistSubjectControl != null)
+				return new CompletionProposalPopup(contentAssistant, fContentAssistSubjectControl, controller);
+			return new CompletionProposalPopup(contentAssistant, fViewer, controller);
+		}
 	}
 
 	/**

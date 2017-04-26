@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2015 IBM Corporation and others.
+ * Copyright (c) 2000, 2016 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -92,7 +92,7 @@ public class SourceViewer extends TextViewer implements ISourceViewer, ISourceVi
 
 		/** The gap between the text viewer and the vertical ruler. */
 		protected int fGap;
-		
+
 		/**
 		 * Cached arrow heights of the vertical scroll bar: An array containing {topArrowHeight, bottomArrowHeight}.
 		 * @since 3.6
@@ -136,12 +136,12 @@ public class SourceViewer extends TextViewer implements ISourceViewer, ISourceVi
 				width -= overviewRulerWidth + fGap;
 			}
 
+			ScrollBar horizontalBar= textWidget.getHorizontalBar();
+			final boolean hScrollVisible= horizontalBar != null && horizontalBar.getVisible();
 			if (fVerticalRuler != null && fIsVerticalRulerVisible) {
 				int verticalRulerWidth= fVerticalRuler.getWidth();
 				final Control verticalRulerControl= fVerticalRuler.getControl();
 				int oldWidth= verticalRulerControl.getBounds().width;
-				ScrollBar horizontalBar= textWidget.getHorizontalBar();
-				boolean hScrollVisible= horizontalBar != null && horizontalBar.isVisible();
 				int rulerHeight= clArea.height - topTrim;
 				if (hScrollVisible)
 					rulerHeight-= scrollbarHeight;
@@ -158,21 +158,29 @@ public class SourceViewer extends TextViewer implements ISourceViewer, ISourceVi
 			if (overviewRulerWidth != -1) {
 				if (scrollbarHeight <= 0)
 					scrollbarHeight= overviewRulerWidth;
-				
+
 				int bottomOffset= clArea.y + clArea.height - scrollbarHeight;
 				int[] arrowHeights= getVerticalScrollArrowHeights(textWidget, bottomOffset);
-				
+
 				int overviewRulerX= clArea.x + clArea.width - overviewRulerWidth - 1;
-				fOverviewRuler.getControl().setBounds(overviewRulerX, clArea.y + arrowHeights[0], overviewRulerWidth, clArea.height - arrowHeights[0] - arrowHeights[1] - scrollbarHeight);
-				
+				boolean noSpaceForHeader= (arrowHeights[0] <= 0 && arrowHeights[1] <= 0 && !hScrollVisible);
 				Control headerControl= fOverviewRuler.getHeaderControl();
-				boolean noArrows= arrowHeights[0] < 6 && arrowHeights[1] < 6; // need at least 6px to render the header control
-				if (noArrows || arrowHeights[0] < arrowHeights[1] && arrowHeights[0] < scrollbarHeight && arrowHeights[1] > scrollbarHeight) {
-					// // not enough space for header at top => move to bottom
-					int headerHeight= noArrows ? scrollbarHeight : arrowHeights[1];
-					headerControl.setBounds(overviewRulerX, clArea.y + clArea.height - arrowHeights[1] - scrollbarHeight, overviewRulerWidth, headerHeight);
+				Control rulerControl= fOverviewRuler.getControl();
+				if (noSpaceForHeader) {
+					// If we don't have space to draw because we don't have arrows and the horizontal scroll is invisible,
+					// use the whole space for the ruler and leave the headerControl without any space (will actually be invisible).
+					rulerControl.setBounds(overviewRulerX, clArea.y, overviewRulerWidth, clArea.height);
+					headerControl.setBounds(0, 0, 0, 0);
 				} else {
-					headerControl.setBounds(overviewRulerX, clArea.y, overviewRulerWidth, arrowHeights[0]);
+					boolean smallArrows= arrowHeights[0] < 6 && arrowHeights[1] < 6; // need at least 6px to render the header control
+					rulerControl.setBounds(overviewRulerX, clArea.y + arrowHeights[0], overviewRulerWidth, clArea.height - arrowHeights[0] - arrowHeights[1] - scrollbarHeight);
+					if (smallArrows || arrowHeights[0] < arrowHeights[1] && arrowHeights[0] < scrollbarHeight && arrowHeights[1] > scrollbarHeight) {
+						// not enough space for header at top => move to bottom
+						int headerHeight= smallArrows ? scrollbarHeight : arrowHeights[1];
+						headerControl.setBounds(overviewRulerX, clArea.y + clArea.height - arrowHeights[1] - scrollbarHeight, overviewRulerWidth, headerHeight);
+					} else {
+						headerControl.setBounds(overviewRulerX, clArea.y, overviewRulerWidth, arrowHeights[0]);
+					}
 				}
 				headerControl.redraw();
 			}
@@ -180,18 +188,18 @@ public class SourceViewer extends TextViewer implements ISourceViewer, ISourceVi
 
 		/**
 		 * Computes and caches the arrow heights of the vertical scroll bar.
-		 * 
+		 *
 		 * @param textWidget the StyledText
 		 * @param bottomOffset y-coordinate of the bottom of the overview ruler area
 		 * @return an array containing {topArrowHeight, bottomArrowHeight}
-		 * 
+		 *
 		 * @since 3.6
 		 */
 		private int[] getVerticalScrollArrowHeights(StyledText textWidget, int bottomOffset) {
 			ScrollBar verticalBar= textWidget.getVerticalBar();
-			if (verticalBar == null || !verticalBar.isVisible())
+			if (verticalBar == null || !verticalBar.getVisible())
 				return new int[] { 0, 0 };
-			
+
 			int[] arrowHeights= computeScrollArrowHeights(textWidget, bottomOffset);
 			if (arrowHeights[0] > 0 || arrowHeights[1] > 0) {
 				fScrollArrowHeights= arrowHeights;
@@ -203,7 +211,7 @@ public class SourceViewer extends TextViewer implements ISourceViewer, ISourceVi
 				try {
 					int fakeHeight= 1000;
 					bottomOffset= bottomOffset - originalSize.y + fakeHeight;
-					textWidget.setSize(originalSize.x, fakeHeight);
+					textWidget.setSize(originalSize.x + 100, fakeHeight);
 					verticalBar.setValues(0, 0, 1 << 30, 1, 10, 10);
 					arrowHeights= computeScrollArrowHeights(textWidget, bottomOffset);
 					fScrollArrowHeights= arrowHeights;
@@ -216,19 +224,22 @@ public class SourceViewer extends TextViewer implements ISourceViewer, ISourceVi
 
 		/**
 		 * Computes the arrow heights of the vertical scroll bar.
-		 * 
+		 *
 		 * @param textWidget the StyledText
 		 * @param bottomOffset y-coordinate of the bottom of the overview ruler area
 		 * @return an array containing {topArrowHeight, bottomArrowHeight}
-		 * 
+		 *
 		 * @since 3.6
 		 */
 		private int[] computeScrollArrowHeights(StyledText textWidget, int bottomOffset) {
 			ScrollBar verticalBar= textWidget.getVerticalBar();
 			Rectangle thumbTrackBounds= verticalBar.getThumbTrackBounds();
-			if (thumbTrackBounds.height == 0) // SWT returns bogus values on Cocoa in this case, see https://bugs.eclipse.org/352990
+			if (thumbTrackBounds.height == 0) {
+				// SWT returns bogus values on Cocoa in this case, see https://bugs.eclipse.org/352990
+				// SWT returns bogus values on Windows when the control is too small, see https://bugs.eclipse.org/485540
 				return new int[] { 0, 0 };
-			
+			}
+
 			int topArrowHeight= thumbTrackBounds.y;
 			int bottomArrowHeight= bottomOffset - (thumbTrackBounds.y + thumbTrackBounds.height);
 			return new int[] { topArrowHeight, bottomArrowHeight };
@@ -354,7 +365,7 @@ public class SourceViewer extends TextViewer implements ISourceViewer, ISourceVi
 	 * @param parent the parent of the viewer's control
 	 * @param ruler the vertical ruler used by this source viewer
 	 * @param styles the SWT style bits for the viewer's control,
-	 * 			<em>if <code>SWT.WRAP</code> is set then a custom document adapter needs to be provided, see {@link #createDocumentAdapter()}
+	 * 			<em>if <code>SWT.WRAP</code> is set then a custom document adapter needs to be provided, see {@link #createDocumentAdapter()}</em>
 	 */
 	public SourceViewer(Composite parent, IVerticalRuler ruler, int styles) {
 		this(parent, ruler, null, false, styles);
@@ -370,7 +381,7 @@ public class SourceViewer extends TextViewer implements ISourceViewer, ISourceVi
 	 * @param overviewRuler the overview ruler
 	 * @param showAnnotationsOverview <code>true</code> if the overview ruler should be visible, <code>false</code> otherwise
 	 * @param styles the SWT style bits for the viewer's control,
-	 * 			<em>if <code>SWT.WRAP</code> is set then a custom document adapter needs to be provided, see {@link #createDocumentAdapter()}
+	 * 			<em>if <code>SWT.WRAP</code> is set then a custom document adapter needs to be provided, see {@link #createDocumentAdapter()}</em>
 	 * @since 2.1
 	 */
 	public SourceViewer(Composite parent, IVerticalRuler verticalRuler, IOverviewRuler overviewRuler, boolean showAnnotationsOverview, int styles) {
@@ -491,17 +502,14 @@ public class SourceViewer extends TextViewer implements ISourceViewer, ISourceVi
 
 		// install content type specific plug-ins
 		String[] types= configuration.getConfiguredContentTypes(this);
-		for (int i= 0; i < types.length; i++) {
-
-			String t= types[i];
+		for (String t : types) {
 
 			setAutoEditStrategies(configuration.getAutoEditStrategies(this, t), t);
 			setTextDoubleClickStrategy(configuration.getDoubleClickStrategy(this, t), t);
 
 			int[] stateMasks= configuration.getConfiguredTextHoverStateMasks(this, t);
 			if (stateMasks != null) {
-				for (int j= 0; j < stateMasks.length; j++)	{
-					int stateMask= stateMasks[j];
+				for (int stateMask : stateMasks) {
 					setTextHover(configuration.getTextHover(this, t, stateMask), t, stateMask);
 				}
 			} else {
@@ -815,7 +823,7 @@ public class SourceViewer extends TextViewer implements ISourceViewer, ISourceVi
 
 	/**
 	 * Position storing block selection information in order to maintain a column selection.
-	 * 
+	 *
 	 * @since 3.5
 	 */
 	private static final class ColumnPosition extends Position {
@@ -1028,9 +1036,9 @@ public class SourceViewer extends TextViewer implements ISourceViewer, ISourceVi
 			ISlaveDocumentManagerExtension extension= (ISlaveDocumentManagerExtension) manager;
 			IDocument[] slaves= extension.getSlaveDocuments(masterDocument);
 			if (slaves != null) {
-				for (int i= 0; i < slaves.length; i++) {
-					if (slaves[i] instanceof ChildDocument) {
-						ChildDocument child= (ChildDocument) slaves[i];
+				for (IDocument slave : slaves) {
+					if (slave instanceof ChildDocument) {
+						ChildDocument child= (ChildDocument) slave;
 						Position p= child.getParentDocumentRange();
 						try {
 
@@ -1166,7 +1174,7 @@ public class SourceViewer extends TextViewer implements ISourceViewer, ISourceVi
 
 	/**
 	 * Adds the give column as last column to this viewer's vertical ruler.
-	 * 
+	 *
 	 * @param column the column to be added
 	 * @since 3.8
 	 */
@@ -1180,7 +1188,7 @@ public class SourceViewer extends TextViewer implements ISourceViewer, ISourceVi
 
 	/**
 	 * Removes the give column from this viewer's vertical ruler.
-	 * 
+	 *
 	 * @param column the column to be removed
 	 * @since 3.8
 	 */

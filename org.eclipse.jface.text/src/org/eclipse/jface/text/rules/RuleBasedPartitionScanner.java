@@ -22,7 +22,7 @@ import org.eclipse.jface.text.IDocument;
  * content type that is not <code>null</code> then this scanner will first try the rules that match
  * the given content type.
  * </p>
- * 
+ *
  * @since 2.0
  */
 public class RuleBasedPartitionScanner extends BufferedRuleBasedScanner implements IPartitionTokenScanner {
@@ -96,8 +96,8 @@ public class RuleBasedPartitionScanner extends BufferedRuleBasedScanner implemen
 		IPredicateRule rule;
 		IToken token;
 
-		for (int i= 0; i < fRules.length; i++) {
-			rule= (IPredicateRule) fRules[i];
+		for (IRule fRule : fRules) {
+			rule= (IPredicateRule) fRule;
 			token= rule.getSuccessToken();
 			if (fContentType.equals(token.getData())) {
 				token= rule.evaluate(this, resume);

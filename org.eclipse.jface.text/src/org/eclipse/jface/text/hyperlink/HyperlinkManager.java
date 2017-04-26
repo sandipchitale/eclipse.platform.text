@@ -261,7 +261,7 @@ public class HyperlinkManager implements ITextListener, Listener, KeyListener, M
 
 	/**
 	 * Returns the hyperlinks in the given region or <code>null</code> if none.
-	 * 
+	 *
 	 * @param region the selection region
 	 * @return the array of hyperlinks found or <code>null</code> if none
 	 * @since 3.7
@@ -269,8 +269,7 @@ public class HyperlinkManager implements ITextListener, Listener, KeyListener, M
 	private IHyperlink[] findHyperlinks(IRegion region) {
 		List<IHyperlink> allHyperlinks= new ArrayList<>(fHyperlinkDetectors.length * 2);
 		synchronized (fHyperlinkDetectors) {
-			for (int i= 0, length= fHyperlinkDetectors.length; i < length; i++) {
-				IHyperlinkDetector detector= fHyperlinkDetectors[i];
+			for (IHyperlinkDetector detector : fHyperlinkDetectors) {
 				if (detector == null)
 					continue;
 
@@ -340,7 +339,7 @@ public class HyperlinkManager implements ITextListener, Listener, KeyListener, M
 
 	/**
 	 * Returns the offset in the given viewer that corresponds to the current cursor location.
-	 * 
+	 *
 	 * @return the offset in the given viewer that corresponds to the current cursor location.
 	 */
 	protected int getCurrentTextOffset() {
@@ -356,7 +355,7 @@ public class HyperlinkManager implements ITextListener, Listener, KeyListener, M
 		}
 
 		fActive= true;
-		
+
 		// do not show hyperlink, since that would often be confusing (e.g. when pressing Ctrl+C)
 	}
 
@@ -380,18 +379,18 @@ public class HyperlinkManager implements ITextListener, Listener, KeyListener, M
 		if (!isRegisteredStateMask(event.stateMask)) {
 			if (fActive)
 				deactivate();
-			
+
 			return;
 		}
-		
+
 		if (event.button != 1) {
 			deactivate();
 			return;
 		}
-		
+
 		fActive= true;
 		fActiveHyperlinkStateMask= event.stateMask & SWT.MODIFIER_MASK;
-		
+
 		StyledText text= fTextViewer.getTextWidget();
 		if (text == null || text.isDisposed()) {
 			deactivate();
@@ -468,9 +467,9 @@ public class HyperlinkManager implements ITextListener, Listener, KeyListener, M
 			return true;
 
 		synchronized (fHyperlinkDetectors) {
-			for (int i= 0; i < fHyperlinkDetectors.length; i++) {
-				if (fHyperlinkDetectors[i] instanceof IHyperlinkDetectorExtension2) {
-					if (stateMask == ((IHyperlinkDetectorExtension2)fHyperlinkDetectors[i]).getStateMask())
+			for (IHyperlinkDetector fHyperlinkDetector : fHyperlinkDetectors) {
+				if (fHyperlinkDetector instanceof IHyperlinkDetectorExtension2) {
+					if (stateMask == ((IHyperlinkDetectorExtension2)fHyperlinkDetector).getStateMask())
 						return true;
 				}
 			}
@@ -533,16 +532,16 @@ public class HyperlinkManager implements ITextListener, Listener, KeyListener, M
 	/**
 	 * Opens the hyperlink at the current caret location directly if there's only one link, else
 	 * opens the hyperlink control showing all the hyperlinks at that location.
-	 * 
+	 *
 	 * @param takesFocusWhenVisible <code>true</code> if the control takes focus when visible,
 	 *            <code>false</code> otherwise
-	 * 
+	 *
 	 * @return <code>true</code> if at least one hyperlink has been found at the caret location,
 	 *         <code>false</code> otherwise
 	 * @since 3.7
 	 */
 	private boolean showHyperlinks(boolean takesFocusWhenVisible) {
-		
+
 		if (fActiveHyperlinks == null || fActiveHyperlinks.length == 0) {
 			fHyperlinkPresenter.hideHyperlinks();
 			return false;
@@ -562,7 +561,7 @@ public class HyperlinkManager implements ITextListener, Listener, KeyListener, M
 	/**
 	 * Opens the hyperlink at the caret location or opens a chooser
 	 * if more than one hyperlink is available.
-	 * 
+	 *
 	 * @return <code>true</code> if at least one hyperlink has been found at the caret location, <code>false</code> otherwise
 	 * @see #OPEN_HYPERLINK
 	 * @since 3.6

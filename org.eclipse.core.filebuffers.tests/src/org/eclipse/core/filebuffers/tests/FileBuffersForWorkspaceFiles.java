@@ -10,6 +10,9 @@
  *******************************************************************************/
 package org.eclipse.core.filebuffers.tests;
 
+import static org.junit.Assert.assertTrue;
+import static org.junit.Assert.fail;
+
 import java.io.IOException;
 import java.io.OutputStream;
 
@@ -88,7 +91,7 @@ public class FileBuffersForWorkspaceFiles extends FileBufferFunctions {
 		assertTrue(fileStore.fetchInfo().exists());
 		OutputStream out= fileStore.openOutputStream(EFS.NONE, null);
 		try {
-			out.write(new String("Changed content of workspace file").getBytes());
+			out.write("Changed content of workspace file".getBytes());
 			out.flush();
 		} catch (IOException x) {
 			fail();

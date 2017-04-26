@@ -11,12 +11,13 @@
 
 package org.eclipse.ui.editors.tests;
 
+import static org.junit.Assert.assertEquals;
+
 import java.util.ArrayList;
 import java.util.List;
 
-import junit.framework.Test;
-import junit.framework.TestCase;
-import junit.framework.TestSuite;
+import org.junit.After;
+import org.junit.Test;
 
 import org.eclipse.jface.preference.IPreferenceStore;
 import org.eclipse.jface.preference.PreferenceStore;
@@ -25,7 +26,7 @@ import org.eclipse.jface.util.PropertyChangeEvent;
 
 import org.eclipse.ui.texteditor.ChainedPreferenceStore;
 
-public class ChainedPreferenceStoreTest extends TestCase {
+public class ChainedPreferenceStoreTest {
 
 	private class PropertyChangeListener implements IPropertyChangeListener {
 
@@ -43,14 +44,16 @@ public class ChainedPreferenceStoreTest extends TestCase {
 	private static final String DEFAULT_VALUE= "4";
 	private static final String DEFAULT_DEFAULT_VALUE= "";
 
-	public static Test suite() {
-		return new TestSuite(ChainedPreferenceStoreTest.class);
+	@After
+	public void tearDown() {
+		TestUtil.cleanUp();
 	}
 
 	/**
 	 * [implementation] ChainedPreferenceStore
 	 * https://bugs.eclipse.org/bugs/show_bug.cgi?id=69419
 	 */
+	@Test
 	public void testChainedStore0() {
 		IPreferenceStore store1= new PreferenceStore();
 		IPreferenceStore store2= new PreferenceStore();
@@ -73,6 +76,7 @@ public class ChainedPreferenceStoreTest extends TestCase {
 	 * Assertion failed in ChainedPreferenceStore.handlePropertyChangeEvent(..)
 	 * https://bugs.eclipse.org/bugs/show_bug.cgi?id=52827
 	 */
+	@Test
 	public void testChainedStore1() {
 		IPreferenceStore store1= new PreferenceStore();
 		IPreferenceStore store2= new PreferenceStore();
@@ -93,6 +97,7 @@ public class ChainedPreferenceStoreTest extends TestCase {
 	/**
 	 * Third case where the initial implementation used to have an assertion which would fail in this case
 	 */
+	@Test
 	public void testChainedStore2() {
 		IPreferenceStore store1= new PreferenceStore();
 		IPreferenceStore store2= new PreferenceStore();
@@ -114,6 +119,7 @@ public class ChainedPreferenceStoreTest extends TestCase {
 	/**
 	 * Case where the initial implementation used to throw an IAE
 	 */
+	@Test
 	public void testChainedStore3() {
 		IPreferenceStore store1= new PreferenceStore();
 		IPreferenceStore store2= new PreferenceStore();
@@ -131,24 +137,4 @@ public class ChainedPreferenceStoreTest extends TestCase {
 		assertEquals(null, event.getOldValue());
 		assertEquals(DEFAULT_VALUE, event.getNewValue());
 	}
-
-//	/**
-//	 * Case where the old value cannot be determined. (Not handled by the current implementation.)
-//	 */
-//	public void testChainedStore4() {
-//		IPreferenceStore store1= EditorsUI.getPreferenceStore();
-//		IPreferenceStore store2= new PreferenceStore();
-//		IPreferenceStore chainedStore= new ChainedPreferenceStore(new IPreferenceStore[] { store1, store2 });
-//		store2.setDefault(PROPERTY, DEFAULT_VALUE);
-//
-//		chainedStore.addPropertyChangeListener(fPropertyChangeListener);
-//		store1.setValue(PROPERTY, VALUE);
-//		chainedStore.removePropertyChangeListener(fPropertyChangeListener);
-//
-//		assertEquals(1, fEvents.size());
-//		PropertyChangeEvent event= (PropertyChangeEvent) fEvents.get(0);
-//		assertEquals(PROPERTY, event.getProperty());
-//		assertNull(event.getOldValue());
-//		assertEquals(VALUE, event.getNewValue());
-//	}
 }

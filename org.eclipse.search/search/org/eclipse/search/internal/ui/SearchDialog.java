@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2015 IBM Corporation and others.
+ * Copyright (c) 2000, 2016 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -21,6 +21,8 @@ import java.util.List;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.BusyIndicator;
+import org.eclipse.swt.custom.CTabFolder;
+import org.eclipse.swt.custom.CTabItem;
 import org.eclipse.swt.events.DisposeEvent;
 import org.eclipse.swt.events.DisposeListener;
 import org.eclipse.swt.events.SelectionAdapter;
@@ -38,8 +40,6 @@ import org.eclipse.swt.widgets.Display;
 import org.eclipse.swt.widgets.Label;
 import org.eclipse.swt.widgets.Layout;
 import org.eclipse.swt.widgets.Shell;
-import org.eclipse.swt.widgets.TabFolder;
-import org.eclipse.swt.widgets.TabItem;
 
 import org.eclipse.core.runtime.CoreException;
 import org.eclipse.core.runtime.IAdaptable;
@@ -94,7 +94,7 @@ public class SearchDialog extends ExtendedDialogWindow implements ISearchPageCon
 
 	// Dialog store id constants
 	private static final String DIALOG_NAME= "SearchDialog"; //$NON-NLS-1$
-	private static final String STORE_PREVIOUS_PAGE= "PREVIOUS_PAGE"; //$NON-NLS-1$	
+	private static final String STORE_PREVIOUS_PAGE= "PREVIOUS_PAGE"; //$NON-NLS-1$
 	private static final String STORE_IS_OPEN_PREVIOUS_PAGE= "IS_OPEN_PREVIOUS_PAGE"; //$NON-NLS-1$
 
 
@@ -149,7 +149,7 @@ public class SearchDialog extends ExtendedDialogWindow implements ISearchPageCon
 	private boolean fLastEnableState;
 	private Button fCustomizeButton;
 	private Button fReplaceButton;
-	private ListenerList fPageChangeListeners;
+	private ListenerList<IPageChangedListener> fPageChangeListeners;
 
 	private final IWorkbenchWindow fWorkbenchWindow;
 	private final ISelection fCurrentSelection;
@@ -282,7 +282,7 @@ public class SearchDialog extends ExtendedDialogWindow implements ISearchPageCon
 
 	/**
 	 * Tells whether the given part is the old ('classic') search view.
-	 * 
+	 *
 	 * @param part the part to test
 	 * @return <code>true</code> if the given part is the old search view
 	 * @deprecated old ('classic') search is deprecated
@@ -337,7 +337,7 @@ public class SearchDialog extends ExtendedDialogWindow implements ISearchPageCon
 
 		ListSelectionDialog dialog= new ListSelectionDialog(getShell(), input, new ArrayContentProvider(), labelProvider, message) {
 			Button fLastUsedPageButton;
-			
+
 			@Override
 			public void create() {
 				super.create();
@@ -367,7 +367,7 @@ public class SearchDialog extends ExtendedDialogWindow implements ISearchPageCon
 				fLastUsedPageButton.setSelection(fDialogSettings.getBoolean(STORE_IS_OPEN_PREVIOUS_PAGE));
 				return control;
 			}
-			
+
 			@Override
 			protected void okPressed() {
 				fDialogSettings.put(STORE_IS_OPEN_PREVIOUS_PAGE, fLastUsedPageButton.getSelection());
@@ -435,7 +435,8 @@ public class SearchDialog extends ExtendedDialogWindow implements ISearchPageCon
 		composite.setLayout(layout);
 		composite.setLayoutData(new GridData(GridData.FILL_BOTH));
 
-		TabFolder folder= new TabFolder(composite, SWT.NONE);
+		CTabFolder folder = new CTabFolder(composite, SWT.BORDER);
+
 		folder.setLayout(new TabFolderLayout());
 		folder.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
 		folder.setFont(composite.getFont());
@@ -445,7 +446,7 @@ public class SearchDialog extends ExtendedDialogWindow implements ISearchPageCon
 			if (WorkbenchActivityHelper.filterItem(descriptor))
 			    continue;
 
-			final TabItem item= new TabItem(folder, SWT.NONE);
+			final CTabItem item = new CTabItem(folder, SWT.NONE);
 			item.setData("descriptor", descriptor); //$NON-NLS-1$
 			item.setText(descriptor.getLabel());
 			item.addDisposeListener(new DisposeListener() {
@@ -567,12 +568,12 @@ public class SearchDialog extends ExtendedDialogWindow implements ISearchPageCon
 	}
 
 	private void turnToPage(SelectionEvent event) {
-		final TabItem item= (TabItem) event.item;
-		TabFolder folder= item.getParent();
+		final CTabItem item = (CTabItem) event.item;
+		CTabFolder folder = item.getParent();
 
 		SearchPageDescriptor descriptor= (SearchPageDescriptor) item.getData("descriptor"); //$NON-NLS-1$
 
-		
+
 		if (item.getControl() == null) {
 			item.setControl(createPageControl(folder, descriptor));
 		}
@@ -848,7 +849,7 @@ public class SearchDialog extends ExtendedDialogWindow implements ISearchPageCon
 	@Override
 	public void addPageChangedListener(IPageChangedListener listener) {
 		if (fPageChangeListeners == null) {
-			fPageChangeListeners= new ListenerList();
+			fPageChangeListeners= new ListenerList<>();
 		}
 		fPageChangeListeners.add(listener);
 	}
@@ -862,9 +863,7 @@ public class SearchDialog extends ExtendedDialogWindow implements ISearchPageCon
 		if (fPageChangeListeners != null && !fPageChangeListeners.isEmpty()) {
 			// Fires the page change event
 			final PageChangedEvent event= new PageChangedEvent(this, getSelectedPage());
-			Object[] listeners= fPageChangeListeners.getListeners();
-			for (int i= 0; i < listeners.length; ++i) {
-				final IPageChangedListener l= (IPageChangedListener) listeners[i];
+			for (IPageChangedListener l : fPageChangeListeners) {
 				SafeRunner.run(new SafeRunnable() {
 					@Override
 					public void run() {

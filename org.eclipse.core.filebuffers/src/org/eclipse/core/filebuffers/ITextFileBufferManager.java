@@ -78,7 +78,8 @@ public interface ITextFileBufferManager extends IFileBufferManager {
 	 * <p>
 	 * <strong>Note:</strong> This API must not be used if the given file
 	 * store maps to a resource contained in the workspace. A file buffer
-	 * that has been connected using a path will not be found.
+	 * that has been connected using a path will not be found. The encoding
+	 * of the file in the workspace will not be considered.
 	 * </p>
 	 * <p>
 	 * We had to use a different name than <code>getTextFileBuffer</code> for this method
@@ -123,7 +124,7 @@ public interface ITextFileBufferManager extends IFileBufferManager {
 	 * the local file system. The file buffer manager does not resolve the location of workspace
 	 * resources in the case of linked resources.
 	 * </p>
-	 * 
+	 *
 	 * @param location the location used to set up the newly created document or <code>null</code>
 	 *            if unknown
 	 * @return a new empty document
@@ -138,7 +139,7 @@ public interface ITextFileBufferManager extends IFileBufferManager {
 	 * <p>
 	 * The type of the provided location is specified by the given <code>locationKind</code>.
 	 * </p>
-	 * 
+	 *
 	 * @param location the location used to set up the newly created document or <code>null</code>
 	 *            if unknown
 	 * @param locationKind the kind of the given location

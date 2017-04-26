@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2015 IBM Corporation and others.
+ * Copyright (c) 2000, 2016 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -67,7 +67,7 @@ import org.eclipse.jface.text.source.projection.AnnotationBag;
  * <p>
  * Clients usually instantiate and configure objects of this class.
  * </p>
- * 
+ *
  * @since 2.1
  */
 public class OverviewRuler implements IOverviewRulerExtension, IOverviewRuler {
@@ -272,7 +272,7 @@ public class OverviewRuler implements IOverviewRulerExtension, IOverviewRuler {
 			Point s= fHeader.getSize();
 
 			e.gc.setBackground(fIndicatorColor);
-			
+
 			Rectangle headerBounds= fHeader.getBounds();
 			boolean isOnTop= headerBounds.y + headerBounds.height <= fCanvas.getLocation().y;
 			boolean isTall= s.y > s.x + 2*ANNOTATION_HEIGHT;
@@ -306,7 +306,7 @@ public class OverviewRuler implements IOverviewRulerExtension, IOverviewRuler {
 
 	/**
 	 * Container for cached widget infos.
-	 * 
+	 *
 	 * @since 3.7
 	 */
 	static class WidgetInfos {
@@ -334,10 +334,10 @@ public class OverviewRuler implements IOverviewRulerExtension, IOverviewRuler {
 		 * the writable area in the text widget (height of all lines in pixels)
 		 */
 		int writable;
-	
+
 		/**
 		 * Initializes the widget infos.
-		 * 
+		 *
 		 * @param textWidget the text widget
 		 * @param canvas the overview ruler canvas
 		 */
@@ -345,20 +345,36 @@ public class OverviewRuler implements IOverviewRulerExtension, IOverviewRuler {
 			maxLines= textWidget.getLineCount();
 			bounds= canvas.getBounds();
 			writable= JFaceTextUtil.computeLineHeight(textWidget, 0, maxLines, maxLines);
-			
+
 			ScrollBar verticalBar= textWidget.getVerticalBar();
-			thumbHeight= verticalBar != null ? Math.max(Math.min(bounds.height, verticalBar.getThumbBounds().height), 0) : 0;
-			
+			if (verticalBar != null && !verticalBar.getVisible()) {
+				// Note: when the vertical bar is invisible, the thumbHeight is not reliable,
+				// so, we'll compute what would be the thumbHeight in case it was visible.
+				int max= verticalBar.getMaximum();
+				double clientAreaHeight= textWidget.getClientArea().height;
+				if (max > clientAreaHeight) {
+					double percentage= clientAreaHeight / max;
+					thumbHeight= (int) (bounds.height * percentage);
+				} else {
+					thumbHeight= bounds.height;
+				}
+				if (thumbHeight < 0) {
+					thumbHeight= 0;
+				}
+			} else {
+				thumbHeight= verticalBar != null ? Math.max(Math.min(bounds.height, verticalBar.getThumbBounds().height), 0) : 0;
+			}
+
 	        int partialTopIndex= JFaceTextUtil.getPartialTopIndex(textWidget);
 	        int topLineHeight= textWidget.getLineHeight(textWidget.getOffsetAtLine(partialTopIndex));
 	        int topLinePixel= textWidget.getLinePixel(partialTopIndex);
 	        double topIndex= partialTopIndex - (double) topLinePixel / topLineHeight;
-	        
+
 	        int partialBottomIndex= JFaceTextUtil.getPartialBottomIndex(textWidget);
 	        int bottomLineHeight= textWidget.getLineHeight(textWidget.getOffsetAtLine(partialBottomIndex));
 	        int bottomLinePixel= textWidget.getLinePixel(partialBottomIndex);
 	        double bottomIndex= partialBottomIndex - ((double) bottomLinePixel - textWidget.getClientArea().height) / bottomLineHeight;
-			
+
 	        visibleLines= bottomIndex - topIndex;
 	        invisibleLines= maxLines - visibleLines;
 		}
@@ -367,7 +383,7 @@ public class OverviewRuler implements IOverviewRulerExtension, IOverviewRuler {
 	private static final boolean DEBUG_DRAW= false;
 	private static final boolean DEBUG_COMPUTE_Y= false;
 	private static final boolean DEBUG_TO_DOCUMENT_LINE_NUMBER= false;
-	
+
 	private static final int INSET= 2;
 	private static final int ANNOTATION_HEIGHT= 4;
 	private static boolean ANNOTATION_HEIGHT_SCALABLE= true;
@@ -477,10 +493,10 @@ public class OverviewRuler implements IOverviewRulerExtension, IOverviewRuler {
 	 * @since 3.4
 	 */
 	private boolean fIsTemporaryAnnotationDiscolored;
-	
+
 	/**
 	 * Tells whether saturated colors are used in the overview ruler.
-	 * 
+	 *
 	 * @since 3.8
 	 */
 	private boolean fUseSaturatedColors= false;
@@ -604,7 +620,7 @@ public class OverviewRuler implements IOverviewRulerExtension, IOverviewRuler {
 				handleMouseScrolled(e);
 			}
 		});
-		
+
 		if (fTextViewer != null) {
 			fTextViewer.addTextListener(fInternalListener);
 			// on word wrap toggle a "resized" ControlEvent is fired: suggest a redraw of the ruler
@@ -730,20 +746,18 @@ public class OverviewRuler implements IOverviewRulerExtension, IOverviewRuler {
 			visible= fTextViewer.getVisibleRegion(); // legacy support
 
 		WidgetInfos infos= null;
-		
-		for (Iterator<Object> iterator= fAnnotationsSortedByLayer.iterator(); iterator.hasNext();) {
-			Object annotationType= iterator.next();
 
+		for (Object annotationType : fAnnotationsSortedByLayer) {
 			if (skip(annotationType))
 				continue;
 
 			int[] style= new int[] { FilterIterator.PERSISTENT, FilterIterator.TEMPORARY };
-			for (int t=0; t < style.length; t++) {
+			for (int element : style) {
 				boolean areColorsComputed= false;
 				Color fill= null;
 				Color stroke= null;
 
-				Iterator<Annotation> e= new FilterIterator(annotationType, style[t], fCachedAnnotations.iterator());
+				Iterator<Annotation> e= new FilterIterator(annotationType, element, fCachedAnnotations.iterator());
 				while (e.hasNext()) {
 					Annotation a= e.next();
 					Position p= fModel.getPosition(a);
@@ -765,7 +779,7 @@ public class OverviewRuler implements IOverviewRulerExtension, IOverviewRuler {
 						if (widgetRegion == null)
 							continue;
 					}
-					
+
 					if (infos == null) {
 						infos= new WidgetInfos(textWidget, fCanvas);
 						r.x= INSET;
@@ -775,9 +789,9 @@ public class OverviewRuler implements IOverviewRulerExtension, IOverviewRuler {
 					try {
 						int startOffset= visible != null ? annotationOffset - visible.getOffset() : widgetRegion.getOffset();
 						int startLine= textWidget.getLineAtOffset(startOffset);
-						
+
 						yy= computeY(startLine, infos);
-						
+
 						if (ANNOTATION_HEIGHT_SCALABLE) {
 							int numberOfLines= document.getNumberOfLines(annotationOffset, annotationLength);
 							// don't count empty trailing line
@@ -793,10 +807,10 @@ public class OverviewRuler implements IOverviewRulerExtension, IOverviewRuler {
 							}
 						}
 						fAnnotationHeight= hh;
-						
+
 						if (!areColorsComputed) {
-							stroke= getStrokeColor(annotationType, style[t] == FilterIterator.TEMPORARY);
-							fill= fUseSaturatedColors ? stroke : getFillColor(annotationType, style[t] == FilterIterator.TEMPORARY);
+							stroke= getStrokeColor(annotationType, element == FilterIterator.TEMPORARY);
+							fill= fUseSaturatedColors ? stroke : getFillColor(annotationType, element == FilterIterator.TEMPORARY);
 							areColorsComputed= true;
 						}
 
@@ -819,7 +833,7 @@ public class OverviewRuler implements IOverviewRulerExtension, IOverviewRuler {
 				}
 			}
 		}
-		
+
 		if (DEBUG_DRAW) {
 			// draw debugging guides (boundaries):
 			if (infos == null)
@@ -829,7 +843,7 @@ public class OverviewRuler implements IOverviewRulerExtension, IOverviewRuler {
 			gc.drawLine(0, yy, infos.bounds.x/2, yy);
 			yy= infos.bounds.height - infos.thumbHeight / 2;
 			gc.drawLine(0, yy, infos.bounds.x/2, yy);
-			
+
 			gc.setForeground(gc.getDevice().getSystemColor(SWT.COLOR_BLUE));
 			yy= 0;
 			gc.drawLine(0, yy, infos.bounds.x/2, yy);
@@ -840,7 +854,7 @@ public class OverviewRuler implements IOverviewRulerExtension, IOverviewRuler {
 
 	/**
 	 * Computes and returns the y location of the given startLine.
-	 * 
+	 *
 	 * @param startLine the start line
 	 * @param infos the cached widget infos
 	 * @return the vertical position of the given startLine in the overview ruler
@@ -848,23 +862,23 @@ public class OverviewRuler implements IOverviewRulerExtension, IOverviewRuler {
 	 */
 	private int computeY(int startLine, WidgetInfos infos) {
 		// this is the inverse of #toLineNumbers(int)
-		
+
 		int yy;
 		if (infos.bounds.height > infos.writable || infos.invisibleLines <= 0) { // too few lines for relative positions: align annotations with textWidget lines
 			yy = Math.max(0, (2 * startLine + 1) * infos.writable / (infos.maxLines * 2) - infos.bounds.y);
 			if (DEBUG_COMPUTE_Y)
 				System.out.println("static: " + yy); //$NON-NLS-1$
-			
+
 		} else if (startLine + 1 < infos.visibleLines / 2) { // before middle of first page: map to area from 0 to thumbHeight/2
 			yy= (int) (startLine * infos.thumbHeight / infos.visibleLines); // == startLine * (thumbHeight / 2) / (visibleLines / 2);
 			if (DEBUG_COMPUTE_Y)
 				System.out.println("start:  " + yy); //$NON-NLS-1$
-			
+
 		} else if (infos.maxLines - infos.visibleLines / 2 <= startLine) { // after middle of last page: map to area from canvasHeight-1 - thumbHeight/2 to canvasHeight-1
 			yy= (int) (infos.bounds.height-1 - (double)infos.thumbHeight / 2 + (startLine - (infos.maxLines - infos.visibleLines / 2) + 1) * infos.thumbHeight / infos.visibleLines);
 			if (DEBUG_COMPUTE_Y)
 				System.out.println("end:    " + yy); //$NON-NLS-1$
-			
+
 		} else { // middle of text: map to area from thumbHeight/2 to (canvasHeight-1 - thumbHeight/2)
 			yy= (int) ((double)infos.thumbHeight/2 + (startLine + 1 - infos.visibleLines / 2) * (infos.bounds.height-1 - infos.thumbHeight) / infos.invisibleLines);
 			if (DEBUG_COMPUTE_Y)
@@ -900,9 +914,8 @@ public class OverviewRuler implements IOverviewRulerExtension, IOverviewRuler {
 			return;
 
 		if (fCanvas != null && !fCanvas.isDisposed()) {
-			if (VerticalRuler.IS_MAC_BUG_298936) {
+			if (VerticalRuler.AVOID_NEW_GC) {
 				fCanvas.redraw();
-				fCanvas.update();
 			} else {
 				GC gc= new GC(fCanvas);
 				doubleBufferPaint(gc);
@@ -924,15 +937,15 @@ public class OverviewRuler implements IOverviewRulerExtension, IOverviewRuler {
 	 */
 	private int[] toLineNumbers(int y_coordinate, boolean annotationRect) {
 		// this is the inverse of #computeY(int, WidgetInfos)
-		
+
 		WidgetInfos infos= new WidgetInfos(fTextViewer.getTextWidget(), fCanvas);
-		
+
 		if (y_coordinate >= infos.writable || y_coordinate >= infos.bounds.height || y_coordinate < 0)
 			return new int[] {-1, -1};
-		
+
 		if (annotationRect && ANNOTATION_HEIGHT >= infos.bounds.height / infos.maxLines)
 			annotationRect= false;
-		
+
 		int[] lines= new int[2];
 		int[] pixels;
 
@@ -943,28 +956,28 @@ public class OverviewRuler implements IOverviewRulerExtension, IOverviewRuler {
 			int pixelStart= Math.max(y_coordinate - ANNOTATION_HEIGHT / 2 + 1, 0);
 			pixels= new int[] { pixelStart, pixelEnd };
 		}
-		
+
 		if (infos.bounds.height > infos.writable || infos.invisibleLines <= 0) { // too few lines for relative positions: align annotations with textWidget lines
 //			yy = Math.max(0, (2 * startLine + 1) * infos.writable / (infos.maxLines * 2) - infos.bounds.y);
 			for (int i= 0; i < pixels.length; i++)
 				lines[i]= (int) ((pixels[i] + infos.bounds.y) * infos.maxLines / (double)infos.writable);
 			if (DEBUG_TO_DOCUMENT_LINE_NUMBER)
 				System.out.println("static y: " + y_coordinate + " => [" + lines[0] + ", " + lines[1] + "]"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$
-			
+
 		} else if (y_coordinate < infos.thumbHeight / 2) { // before middle of first page: map to area from 0 to thumbHeight/2
 //			yy= (int) (startLine * infos.thumbHeight / infos.visibleLines);
 			for (int i= 0; i < pixels.length; i++)
 				lines[i] = (int) (pixels[i] * infos.visibleLines / infos.thumbHeight);
 			if (DEBUG_TO_DOCUMENT_LINE_NUMBER)
 				System.out.println("start  y: " + y_coordinate + " => [" + lines[0] + ", " + lines[1] + "]"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$
-			
+
 		} else if (infos.bounds.height - 1 - infos.thumbHeight / 2 < y_coordinate) { // after middle of last page: map to area from canvasHeight-1 - thumbHeight/2 to canvasHeight-1
 //			yy= (int) (infos.bounds.height-1 - (double)infos.thumbHeight / 2 + (startLine - (infos.maxLines - infos.visibleLines / 2) + 1) * infos.thumbHeight / infos.visibleLines);
 			for (int i= 0; i < pixels.length; i++)
 				lines[i] = (int) ((pixels[i] - (infos.bounds.height-1) + (double)infos.thumbHeight / 2) * infos.visibleLines / infos.thumbHeight - 1 + (infos.maxLines - infos.visibleLines / 2));
 			if (DEBUG_TO_DOCUMENT_LINE_NUMBER)
 				System.out.println("end    y: " + y_coordinate + " => [" + lines[0] + ", " + lines[1] + "]"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$
-			
+
 		} else { // middle of text: map to area from thumbHeight/2 to (canvasHeight-1 - thumbHeight/2)
 //			yy= (int) ((double)infos.thumbHeight/2 + (startLine + 1 - infos.visibleLines / 2) * (infos.bounds.height-1 - infos.thumbHeight) / infos.invisibleLines);
 			for (int i= 0; i < pixels.length; i++)
@@ -972,12 +985,12 @@ public class OverviewRuler implements IOverviewRulerExtension, IOverviewRuler {
 			if (DEBUG_TO_DOCUMENT_LINE_NUMBER)
 				System.out.println("middle y: " + y_coordinate + " => [" + lines[0] + ", " + lines[1] + "]"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$ //$NON-NLS-4$
 		}
-		
+
 		if (y_coordinate < ANNOTATION_HEIGHT && y_coordinate < infos.bounds.y)
 			lines[0]= 0;
 		else if (lines[0] < 0)
 			lines[0]= 0;
-		
+
 		if (annotationRect) {
 			int y0= computeY(lines[0], infos);
 			if (y_coordinate < y0 || y0 + ANNOTATION_HEIGHT < y_coordinate) {
@@ -988,10 +1001,10 @@ public class OverviewRuler implements IOverviewRulerExtension, IOverviewRuler {
 				lines[1]= lines[0];
 			}
 		}
-		
+
 		if (lines[1] > infos.maxLines)
 			lines[1]= infos.maxLines;
-		
+
 		if (fTextViewer instanceof ITextViewerExtension5) {
 			ITextViewerExtension5 extension= (ITextViewerExtension5) fTextViewer;
 			lines[0]= extension.widgetLine2ModelLine(lines[0]);
@@ -1005,7 +1018,7 @@ public class OverviewRuler implements IOverviewRulerExtension, IOverviewRuler {
 			} catch (BadLocationException x) {
 			}
 		}
-		
+
 		if (DEBUG_TO_DOCUMENT_LINE_NUMBER)
 			System.out.println("result: [" + lines[0] + ", " + lines[1] + "]"); //$NON-NLS-1$ //$NON-NLS-2$ //$NON-NLS-3$
 		return lines;
@@ -1181,7 +1194,7 @@ public class OverviewRuler implements IOverviewRulerExtension, IOverviewRuler {
 			int size= fLayersSortedByLayer.size();
 			while (i < size && layer >= fLayersSortedByLayer.get(i).intValue())
 				i++;
-			Integer layerObj= new Integer(layer);
+			Integer layerObj= Integer.valueOf(layer);
 			fLayersSortedByLayer.add(i, layerObj);
 			fAnnotationsSortedByLayer.add(i, annotationType);
 		}
@@ -1234,7 +1247,7 @@ public class OverviewRuler implements IOverviewRulerExtension, IOverviewRuler {
 			Boolean cached= allowed.get(annotationType);
 			if (cached != null)
 				return cached.booleanValue();
-	
+
 			covered = isCovered(annotationType, configured);
 			allowed.put(annotationType, covered ? Boolean.TRUE : Boolean.FALSE);
 		}
@@ -1345,8 +1358,8 @@ public class OverviewRuler implements IOverviewRulerExtension, IOverviewRuler {
 			IAnnotationAccessExtension extension= (IAnnotationAccessExtension) fAnnotationAccess;
 			Object[] superTypes= extension.getSupertypes(annotationType);
 			if (superTypes != null) {
-				for (int i= 0; i < superTypes.length; i++) {
-					color= fAnnotationTypes2Colors.get(superTypes[i]);
+				for (Object superType : superTypes) {
+					color= fAnnotationTypes2Colors.get(superType);
 					if (color != null)
 						return color;
 				}
@@ -1489,7 +1502,7 @@ public class OverviewRuler implements IOverviewRulerExtension, IOverviewRuler {
 		if (fHeader.getToolTipText() != null)
 			return;
 
-		String overview= ""; //$NON-NLS-1$
+		StringBuffer overview = new StringBuffer();
 
 		for (int i= fAnnotationsSortedByLayer.size() -1; i >= 0; i--) {
 
@@ -1512,19 +1525,20 @@ public class OverviewRuler implements IOverviewRulerExtension, IOverviewRuler {
 			}
 
 			if (annotationTypeLabel != null) {
-				if (overview.length() > 0)
-					overview += "\n"; //$NON-NLS-1$
-				overview += JFaceTextMessages.getFormattedString("OverviewRulerHeader.toolTipTextEntry", new Object[] {annotationTypeLabel, new Integer(count)}); //$NON-NLS-1$
+				if (overview.length() > 0) {
+					overview.append("\n"); //$NON-NLS-1$
+				}
+				overview.append(JFaceTextMessages.getFormattedString("OverviewRulerHeader.toolTipTextEntry", new Object[] {annotationTypeLabel, Integer.valueOf(count)})); //$NON-NLS-1$
 			}
 		}
 
 		if (overview.length() > 0)
-			fHeader.setToolTipText(overview);
+			fHeader.setToolTipText(overview.toString());
 	}
 
 	/**
 	 * {@inheritDoc}
-	 * 
+	 *
 	 * @since 3.8
 	 */
 	@Override

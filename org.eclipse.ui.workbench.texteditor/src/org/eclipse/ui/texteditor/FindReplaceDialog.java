@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2013 IBM Corporation and others.
+ * Copyright (c) 2000, 2016 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -7,6 +7,7 @@
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
+ *     SAP SE, christian.georgi@sap.com - Bug 487357: Make find dialog content scrollable
  *******************************************************************************/
 package org.eclipse.ui.texteditor;
 
@@ -19,6 +20,9 @@ import java.util.regex.PatternSyntaxException;
 
 import org.eclipse.swt.SWT;
 import org.eclipse.swt.custom.BusyIndicator;
+import org.eclipse.swt.custom.ScrolledComposite;
+import org.eclipse.swt.events.ControlAdapter;
+import org.eclipse.swt.events.ControlEvent;
 import org.eclipse.swt.events.ModifyEvent;
 import org.eclipse.swt.events.ModifyListener;
 import org.eclipse.swt.events.SelectionAdapter;
@@ -150,7 +154,7 @@ class FindReplaceDialog extends Dialog {
 	}
 
 	/** The size of the dialogs search history. */
-	private static final int HISTORY_SIZE= 5;
+	private static final int HISTORY_SIZE= 15;
 
 	private Point fIncrementalBaseLocation;
 	private boolean fWrapInit, fCaseInit, fWholeWordInit, fForwardInit, fGlobalInit, fIncrementalInit;
@@ -236,8 +240,8 @@ class FindReplaceDialog extends Dialog {
 		fTarget= null;
 
 		fDialogPositionInit= null;
-		fFindHistory= new ArrayList<>(HISTORY_SIZE - 1);
-		fReplaceHistory= new ArrayList<>(HISTORY_SIZE - 1);
+		fFindHistory= new ArrayList<>(HISTORY_SIZE);
+		fReplaceHistory= new ArrayList<>(HISTORY_SIZE);
 
 		fWrapInit= false;
 		fCaseInit= false;
@@ -326,7 +330,7 @@ class FindReplaceDialog extends Dialog {
 					initIncrementalBaseLocation();
 
 				fNeedsInitialFindBeforeReplace= false;
-				performSearch((e.stateMask == SWT.SHIFT) ^ isForwardSearch());
+				performSearch(((e.stateMask & SWT.MODIFIER_MASK) == SWT.SHIFT) ^ isForwardSearch());
 				updateFindHistory();
 			}
 		});
@@ -336,9 +340,9 @@ class FindReplaceDialog extends Dialog {
 			@Override
 			public void widgetSelected(SelectionEvent e) {
 				if (fNeedsInitialFindBeforeReplace)
-					performSearch((e.stateMask == SWT.SHIFT) ^ isForwardSearch());
+					performSearch(((e.stateMask & SWT.MODIFIER_MASK) == SWT.SHIFT) ^ isForwardSearch());
 				if (performReplaceSelection())
-					performSearch((e.stateMask == SWT.SHIFT) ^ isForwardSearch());
+					performSearch(((e.stateMask & SWT.MODIFIER_MASK) == SWT.SHIFT) ^ isForwardSearch());
 				updateFindAndReplaceHistory();
 			}
 		});
@@ -400,19 +404,35 @@ class FindReplaceDialog extends Dialog {
 
 	@Override
 	protected Control createContents(Composite parent) {
-
 		Composite panel= new Composite(parent, SWT.NULL);
 		GridLayout layout= new GridLayout();
 		layout.numColumns= 1;
 		layout.makeColumnsEqualWidth= true;
 		panel.setLayout(layout);
-		panel.setLayoutData(new GridData(SWT.FILL, SWT.FILL, true, true));
+		setGridData(panel, SWT.FILL, true, SWT.FILL, true);
 
-		Composite inputPanel= createInputPanel(panel);
+		ScrolledComposite scrolled= new ScrolledComposite(panel, SWT.V_SCROLL);
+		setGridData(scrolled, SWT.FILL, true, SWT.FILL, true);
+
+		Composite mainArea = new Composite(scrolled, SWT.NONE);
+		setGridData(mainArea, SWT.FILL, true, SWT.FILL, true);
+		mainArea.setLayout(new GridLayout(1, true));
+
+		Composite inputPanel= createInputPanel(mainArea);
 		setGridData(inputPanel, SWT.FILL, true, SWT.TOP, false);
 
-		Composite configPanel= createConfigPanel(panel);
+		Composite configPanel= createConfigPanel(mainArea);
 		setGridData(configPanel, SWT.FILL, true, SWT.TOP, true);
+
+		scrolled.setContent(mainArea);
+		scrolled.setExpandHorizontal(true);
+		scrolled.setExpandVertical(true);
+		scrolled.addControlListener(new ControlAdapter() {
+			@Override
+			public void controlResized(ControlEvent e) {
+				scrolled.setMinHeight(mainArea.computeSize(SWT.DEFAULT, SWT.DEFAULT).y);
+			}
+		});
 
 		Composite buttonPanelB= createButtonSection(panel);
 		setGridData(buttonPanelB, SWT.RIGHT, true, SWT.BOTTOM, false);
@@ -829,7 +849,7 @@ class FindReplaceDialog extends Dialog {
 	/**
 	 * Returns the position of the specified search string, or <code>-1</code> if the string can not
 	 * be found when searching using the given options.
-	 * 
+	 *
 	 * @param findString the string to search for
 	 * @param startPosition the position at which to start the search
 	 * @param forwardSearch the direction of the search
@@ -919,7 +939,7 @@ class FindReplaceDialog extends Dialog {
 
 	/**
 	 * Returns whether the specified search string can be found using the given options.
-	 * 
+	 *
 	 * @param findString the string to search for
 	 * @param forwardSearch the direction of the search
 	 * @param caseSensitive should the search be case sensitive
@@ -929,7 +949,7 @@ class FindReplaceDialog extends Dialog {
 	 * @param regExSearch if <code>true</code> findString represents a regular expression
 	 * @param beep if <code>true</code> beeps when search does not find a match or needs to wrap
 	 * @return <code>true</code> if the search string can be found using the given options
-	 * 
+	 *
 	 * @since 3.0
 	 */
 	private boolean findNext(String findString, boolean forwardSearch, boolean caseSensitive, boolean wrapSearch, boolean wholeWord, boolean incremental, boolean regExSearch, boolean beep) {
@@ -970,15 +990,6 @@ class FindReplaceDialog extends Dialog {
 		if (okToUse(getShell()))
 			return getShell().getBounds();
 		return fDialogPositionInit;
-	}
-
-	@Override
-	protected Point getInitialSize() {
-		Point initialSize= super.getInitialSize();
-		Point minSize= getShell().computeSize(SWT.DEFAULT, SWT.DEFAULT);
-		if (initialSize.x < minSize.x)
-			return minSize;
-		return initialSize;
 	}
 
 	/**
@@ -1267,7 +1278,7 @@ class FindReplaceDialog extends Dialog {
 
 	/**
 	 * Stores the button and its mnemonic in {@link #fMnemonicButtonMap}.
-	 * 
+	 *
 	 * @param button button whose mnemonic has to be stored
 	 * @since 3.7
 	 */
@@ -1449,7 +1460,7 @@ class FindReplaceDialog extends Dialog {
 
 	/**
 	 * Locates the user's findString in the text of the target.
-	 * 
+	 *
 	 * @param mustInitIncrementalBaseLocation <code>true</code> if base location must be initialized
 	 * @param beep if <code>true</code> beeps when search does not find a match or needs to wrap
 	 * @param forwardSearch the search direction
@@ -1873,8 +1884,8 @@ class FindReplaceDialog extends Dialog {
 			}
 		}
 
-		while (history.size() > 8)
-			history.remove(8);
+		while (history.size() > HISTORY_SIZE)
+			history.remove(HISTORY_SIZE);
 
 		String[] names= new String[history.size()];
 		history.toArray(names);

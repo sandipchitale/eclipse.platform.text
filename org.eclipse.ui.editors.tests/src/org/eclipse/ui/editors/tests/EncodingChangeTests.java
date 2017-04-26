@@ -11,9 +11,13 @@
 
 package org.eclipse.ui.editors.tests;
 
-import junit.framework.Test;
-import junit.framework.TestCase;
-import junit.framework.TestSuite;
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNull;
+import static org.junit.Assert.fail;
+
+import org.junit.After;
+import org.junit.Before;
+import org.junit.Test;
 
 import org.eclipse.swt.custom.ScrolledComposite;
 import org.eclipse.swt.custom.StyledText;
@@ -52,14 +56,10 @@ import org.eclipse.ui.editors.text.TextEditor;
  *
  * @since 3.1
  */
-public class EncodingChangeTests extends TestCase {
+public class EncodingChangeTests {
 
 	private static final String NON_DEFAULT_ENCODING= "US-ASCII".equals(ResourcesPlugin.getEncoding()) ? "ISO-8859-1" : "US-ASCII";
 	private static final String ORIGINAL_CONTENT= "line1\nline2\nline3";
-
-	public static Test suite() {
-		return new TestSuite(EncodingChangeTests.class);
-	}
 
 	public static void closeEditor(IEditorPart editor) {
 		IWorkbenchPartSite site;
@@ -77,22 +77,24 @@ public class EncodingChangeTests extends TestCase {
 		return ORIGINAL_CONTENT;
 	}
 
-	@Override
-	protected void setUp() throws Exception {
+	@Before
+	public void setUp() throws Exception {
 		IFolder folder= ResourceHelper.createFolder("EncodingChangeTestProject/EncodingChangeTests/");
 		fFile= ResourceHelper.createFile(folder, "file" + fCount + ".txt", getOriginalContent());
 		fFile.setCharset(null, null);
 		fCount++;
 	}
 
-	@Override
-	protected void tearDown() throws Exception {
+	@After
+	public void tearDown() throws Exception {
 		closeEditor(fEditor);
 		fEditor= null;
 		fFile= null;
 		ResourceHelper.deleteProject("EncodingChangeTestProject");
+		TestUtil.cleanUp();
 	}
 
+	@Test
 	public void testChangeEncodingViaFile() {
 		IWorkbench workbench= PlatformUI.getWorkbench();
 		IWorkbenchPage page= workbench.getActiveWorkbenchWindow().getActivePage();
@@ -120,6 +122,7 @@ public class EncodingChangeTests extends TestCase {
 		}
 	}
 
+	@Test
 	public void testChangeEncodingViaEncodingSupport() {
 		IWorkbench workbench= PlatformUI.getWorkbench();
 		IWorkbenchPage page= workbench.getActiveWorkbenchWindow().getActivePage();
@@ -150,6 +153,7 @@ public class EncodingChangeTests extends TestCase {
 		}
 	}
 
+	@Test
 	public void testAInvalidEncoding() {
 		IWorkbench workbench= PlatformUI.getWorkbench();
 		IWorkbenchPage page= workbench.getActiveWorkbenchWindow().getActivePage();

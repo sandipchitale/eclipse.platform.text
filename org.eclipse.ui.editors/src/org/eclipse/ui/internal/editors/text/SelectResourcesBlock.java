@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2015 IBM Corporation and others.
+ * Copyright (c) 2000, 2016 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -17,6 +17,7 @@ import java.util.HashSet;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.Set;
 
 import org.eclipse.swt.SWT;
@@ -88,7 +89,7 @@ class SelectResourcesBlock implements ICheckStateListener, ISelectionChangedList
 
 	private Collection<Object> whiteCheckedTreeItems= new HashSet<>();
 
-	private ListenerList listeners= new ListenerList(ListenerList.IDENTITY);
+	private ListenerList<ICheckStateListener> listeners= new ListenerList<>(ListenerList.IDENTITY);
 
 	private ITreeContentProvider treeContentProvider;
 
@@ -564,9 +565,7 @@ class SelectResourcesBlock implements ICheckStateListener, ISelectionChangedList
 	 * @param event the event
 	 */
 	private void notifyCheckStateChangeListeners(final CheckStateChangedEvent event) {
-		Object[] array= listeners.getListeners();
-		for (int i= 0; i < array.length; i++) {
-			final ICheckStateListener l= (ICheckStateListener) array[i];
+		for (ICheckStateListener l : listeners) {
 			SafeRunner.run(new SafeRunnable() {
 				@Override
 				public void run() {
@@ -866,14 +865,15 @@ class SelectResourcesBlock implements ICheckStateListener, ISelectionChangedList
 		Set<Object> selectedNodes= new HashSet<>();
 		checkedStateStore= new HashMap<>();
 
-		//Update the store before the hierarchy to prevent updating parents
+		// Update the store before the hierarchy to prevent updating parents
 		// before all of the children are done
-		Iterator<IContainer> keyIterator= items.keySet().iterator();
-		while (keyIterator.hasNext()) {
-			Object key= keyIterator.next();
+		
+		for (Entry<IContainer, List<Object>> entry : items.entrySet()) {
+			Object key = entry.getKey();
 			primeHierarchyForSelection(key, selectedNodes);
-			checkedStateStore.put(key, items.get(key));
+			checkedStateStore.put(key, entry.getValue());
 		}
+			
 
 		// Update the checked tree items. Since each tree item has a selected
 		// item, all the tree items will be gray checked.

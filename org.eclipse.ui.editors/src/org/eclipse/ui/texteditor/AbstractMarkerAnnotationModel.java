@@ -15,6 +15,7 @@ import java.util.HashMap;
 import java.util.Iterator;
 import java.util.LinkedList;
 import java.util.List;
+import java.util.concurrent.CopyOnWriteArrayList;
 
 import org.osgi.framework.Bundle;
 
@@ -70,7 +71,7 @@ import org.eclipse.ui.editors.text.EditorsUI;
 public abstract class AbstractMarkerAnnotationModel extends AnnotationModel implements IPersistableAnnotationModel {
 
 	/** List of annotations whose text range became invalid because of document changes */
-	private List<Annotation> fDeletedAnnotations= new ArrayList<>(2);
+	private List<Annotation> fDeletedAnnotations= new CopyOnWriteArrayList<>();
 	/** List of registered and instantiated marker updaters */
 	private List<IMarkerUpdater> fInstantiatedMarkerUpdaters= null;
 	/** List of registered but not yet instantiated marker updaters */
@@ -272,7 +273,7 @@ public abstract class AbstractMarkerAnnotationModel extends AnnotationModel impl
 			IConfigurationElement[] elements= extensionPoint.getConfigurationElements();
 			for (int i= 0; i < elements.length; i++) {
 				markerUpdaterSpecificationsLinkedList.add(elements[i]);
-				markerUpdaterOrderMap.put(elements[i].getAttribute(ID), new Integer(i));
+				markerUpdaterOrderMap.put(elements[i].getAttribute(ID), Integer.valueOf(i));
 			}
 			//start sorting based on required-updater definition
 			HashMap<String, ArrayList<String>> markerUpdaterRequiredByOrderMap= new HashMap<>(2);
@@ -318,8 +319,8 @@ public abstract class AbstractMarkerAnnotationModel extends AnnotationModel impl
 									.getAttribute(ID)).intValue() - 1);
 							IConfigurationElement requiredMarker= markerUpdaterSpecificationsLinkedList.remove(requiredLocation.intValue());
 							markerUpdaterSpecificationsLinkedList.add(newLocation, requiredMarker); // Put the required location before the marker
-							markerUpdaterOrderMap.put(requiredID, new Integer(newLocation));
-							markerUpdaterOrderMap.put(elements[i].getAttribute(ID), new Integer(newLocation + 1));
+							markerUpdaterOrderMap.put(requiredID, Integer.valueOf(newLocation));
+							markerUpdaterOrderMap.put(elements[i].getAttribute(ID), Integer.valueOf(newLocation + 1));
 						}
 					}
 				}

@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2015 IBM Corporation and others.
+ * Copyright (c) 2000, 2016 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -10,6 +10,7 @@
  *     Michael Fraenkel (fraenkel@us.ibm.com) - contributed a fix for:
  *       o New search view sets incorrect title
  *         (see https://bugs.eclipse.org/bugs/show_bug.cgi?id=60966)
+ *     Robert Roth (robert.roth.off@gmail.com) - Bug 477471
  *******************************************************************************/
 package org.eclipse.search2.internal.ui;
 
@@ -655,7 +656,6 @@ public class SearchView extends PageBookView implements ISearchResultViewPart, I
 	public void fillContextMenu(IMenuManager menuManager) {
 		ISearchResult result= getCurrentSearchResult();
 		if (result != null) {
-			menuManager.appendToGroup(IContextMenuConstants.GROUP_SEARCH, fSearchAgainAction);
 			// first check if we have a selection for the show in mechanism, bugzilla 127718
 			IShowInSource showInSource= getAdapter(IShowInSource.class);
 			if (showInSource != null) {

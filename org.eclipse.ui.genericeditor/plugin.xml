@@ -1,0 +1,91 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<?eclipse version="3.4"?>
+<!-- ====================================================================== -->
+<!-- Copyright (c) 2016 Red Hat Inc. and others.                            -->
+<!-- All rights reserved. This program and the accompanying materials       -->
+<!-- are made available under the terms of the Eclipse Public License v1.0  -->
+<!-- which accompanies this distribution, and is available at               -->
+<!-- http://www.eclipse.org/legal/epl-v10.html                              -->
+<!--                                                                        -->
+<!-- Contributors:                                                          -->
+<!--     Sopot Cela & Mickael Istria (Red Hat Inc). -initial implementation -->
+<!-- ====================================================================== -->
+<plugin>
+   <extension-point id="presentationReconcilers" name="%ExtPoint.presentationReconciliers" schema="schema/presentationReconcilers.exsd"/>
+   <extension-point id="contentAssistProcessors" name="%ExtPoint.contentAssistProcessors" schema="schema/contentAssistProcessors.exsd"/>
+   <extension-point id="hoverProviders" name="%ExtPoint.hoverProviders" schema="schema/hoverProviders.exsd"/>
+   <extension
+         point="org.eclipse.ui.editors">
+      <editor
+            class="org.eclipse.ui.internal.genericeditor.ExtensionBasedTextEditor"
+            contributorClass="org.eclipse.ui.editors.text.TextEditorActionContributor"
+            default="false"
+            icon="icons/full/obj16/generic_editor.png"
+            id="org.eclipse.ui.genericeditor.GenericEditor"
+            name="%genericEditor_name">
+         <contentTypeBinding
+               contentTypeId="org.eclipse.core.runtime.text">
+         </contentTypeBinding>
+      </editor>
+   </extension>
+   <extension
+         point="org.eclipse.ui.commands">
+      <command
+            description="%findReferencesCommand_description"
+            id="org.eclipse.ui.genericeditor.findReferences"
+            name="%findReferencesCommand_name">
+      </command>
+   </extension>
+   <extension
+         point="org.eclipse.ui.contexts">
+      <context
+            description="%context_description"
+            id="org.eclipse.ui.genericeditor.genericEditorContext"
+            name="%context_name"
+            parentId="org.eclipse.ui.textEditorScope">
+      </context>
+   </extension>
+   <extension
+         point="org.eclipse.ui.bindings">
+      <key
+            commandId="org.eclipse.ui.edit.text.open.hyperlink"
+            contextId="org.eclipse.ui.genericeditor.genericEditorContext"
+            schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
+            sequence="F3">
+      </key>
+      <key
+            commandId="org.eclipse.ui.genericeditor.findReferences"
+            contextId="org.eclipse.ui.genericeditor.genericEditorContext"
+            schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"
+            sequence="M1+M2+G">
+      </key>
+   </extension>
+   <extension
+         point="org.eclipse.ui.menus">
+      <menuContribution
+            allPopups="true"
+            locationURI="popup:#TextEditorContext?after=additions">
+         <command
+               commandId="org.eclipse.ui.genericeditor.findReferences"
+               style="push">
+         </command>
+      </menuContribution>
+   </extension>
+   <extension
+         point="org.eclipse.ui.genericeditor.hoverProviders">
+      <hoverProvider
+         isBefore="*"
+         class="org.eclipse.ui.internal.genericeditor.markers.MarkerAnnotationHover"
+         contentType="org.eclipse.core.runtime.text"
+         id="org.eclipse.ui.genericeditor.markers.annotationsHoverProvider">
+      </hoverProvider>
+      <hoverProvider
+            isBefore="*"
+            isAfter="org.eclipse.ui.genericeditor.markers.annotationsHoverProvider"
+            class="org.eclipse.ui.internal.genericeditor.AnnotationHoverDelegate"
+            contentType="org.eclipse.core.runtime.text"
+            id="org.eclipse.ui.genericeditor.annotationsHoverProvider">
+      </hoverProvider>
+   </extension>
+
+</plugin>

@@ -48,6 +48,8 @@ import org.eclipse.swt.widgets.TreeColumn;
 import org.eclipse.swt.widgets.TreeItem;
 
 import org.eclipse.core.runtime.Assert;
+import org.eclipse.core.runtime.IStatus;
+import org.eclipse.core.runtime.Status;
 
 import org.eclipse.jface.action.Action;
 import org.eclipse.jface.action.IAction;
@@ -647,7 +649,7 @@ public abstract class AbstractTemplatesPage extends Page implements ITemplatesPa
 
 	/**
 	 * Returns the template store used in this page.
-	 * 
+	 *
 	 * @return the template store
 	 * @since 3.6 public, before it was protected
 	 */
@@ -1215,7 +1217,7 @@ public abstract class AbstractTemplatesPage extends Page implements ITemplatesPa
 
 	/**
 	 * Returns the currently selected templates
-	 * 
+	 *
 	 * @return selected templates
 	 * @since 3.6 public, before it was private
 	 */
@@ -1307,7 +1309,8 @@ public abstract class AbstractTemplatesPage extends Page implements ITemplatesPa
 		try {
 			getTemplateStore().save();
 		} catch (IOException e) {
-			e.printStackTrace();
+			TextEditorPlugin.getDefault().getLog().log(new Status(IStatus.ERROR, TextEditorPlugin.PLUGIN_ID,
+					TemplatesMessages.TemplatesPage_save_error_message, e));
 			MessageDialog.openError(getShell(),
 					TemplatesMessages.TemplatesPage_save_error_message, e.getMessage());
 		}
@@ -1390,7 +1393,7 @@ public abstract class AbstractTemplatesPage extends Page implements ITemplatesPa
 			message= TemplatesMessages.TemplatesPage_remove_message_single;
 		else
 			message= NLSUtility.format(TemplatesMessages.TemplatesPage_remove_message_multi,
-					new Object[] { new Integer(selectedTemplates.length) });
+					new Object[] { Integer.valueOf(selectedTemplates.length) });
 		if (!MessageDialog.openQuestion(getShell(), title, message))
 			return;
 		for (int i= 0; i < selectedTemplates.length; i++) {

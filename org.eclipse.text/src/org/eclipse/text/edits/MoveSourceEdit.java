@@ -13,9 +13,9 @@ package org.eclipse.text.edits;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 
 import org.eclipse.core.runtime.Assert;
 
@@ -305,8 +305,8 @@ public final class MoveSourceEdit extends TextEdit {
 		} else {
 			MultiTextEdit newEdit= new MultiTextEdit(0, document.getLength());
 			TextEdit[] replaces= fModifier.getModifications(document.get());
-			for (int i= 0; i < replaces.length; i++) {
-				newEdit.addChild(replaces[i]);
+			for (TextEdit replace : replaces) {
+				newEdit.addChild(replace);
 			}
 			try {
 				newEdit.apply(document, style);
@@ -325,8 +325,7 @@ public final class MoveSourceEdit extends TextEdit {
 
 	private static void createEdit(TextEdit source, TextEdit target, Map<TextEdit, TextEdit> editMap) {
 		TextEdit[] children= source.getChildren();
-		for (int i= 0; i < children.length; i++) {
-			TextEdit child= children[i];
+		for (TextEdit child : children) {
 			// a deleted child remains deleted even if the temporary buffer
 			// gets modified.
 			if (child.isDeleted())
@@ -420,9 +419,9 @@ public final class MoveSourceEdit extends TextEdit {
 	}
 
 	private static void restorePositions(Map<TextEdit, TextEdit> editMap) {
-		for (Iterator<TextEdit> iter= editMap.keySet().iterator(); iter.hasNext();) {
-			TextEdit marker= iter.next();
-			TextEdit edit= editMap.get(marker);
+		for (Entry<TextEdit, TextEdit> entry: editMap.entrySet()) {
+			TextEdit marker = entry.getKey();
+			TextEdit edit= entry.getValue();
 			if (marker.isDeleted()) {
 				edit.markAsDeleted();
 			} else {

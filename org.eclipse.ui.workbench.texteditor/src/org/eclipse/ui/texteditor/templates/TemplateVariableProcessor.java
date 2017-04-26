@@ -42,20 +42,6 @@ final class TemplateVariableProcessor implements IContentAssistProcessor {
 		public int compare(TemplateVariableProposal proposal0, TemplateVariableProposal proposal1) {
 			return proposal0.getDisplayString().compareTo(proposal1.getDisplayString());
 		}
-
-		@Override
-		public boolean equals(Object arg0) {
-			return false;
-		}
-
-		/*
-		 * Returns Object#hashCode.
-		 * @see java.lang.Object#hashCode()
-		 */
-		@Override
-		public int hashCode() {
-			return super.hashCode();
-		}
 	};
 
 

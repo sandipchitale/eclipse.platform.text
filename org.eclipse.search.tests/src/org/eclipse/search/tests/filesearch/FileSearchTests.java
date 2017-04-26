@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2015 IBM Corporation and others.
+ * Copyright (c) 2000, 2016 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -12,9 +12,16 @@
  *******************************************************************************/
 package org.eclipse.search.tests.filesearch;
 
+import static org.junit.Assert.assertEquals;
+
 import java.util.ArrayList;
 import java.util.List;
 import java.util.regex.Pattern;
+
+import org.junit.After;
+import org.junit.Before;
+import org.junit.ClassRule;
+import org.junit.Test;
 
 import org.eclipse.core.runtime.CoreException;
 
@@ -35,11 +42,7 @@ import org.eclipse.search.tests.ResourceHelper;
 import org.eclipse.search.tests.SearchTestPlugin;
 import org.eclipse.search.ui.text.FileTextSearchScope;
 
-import junit.framework.Test;
-import junit.framework.TestCase;
-import junit.framework.TestSuite;
-
-public class FileSearchTests extends TestCase {
+public class FileSearchTests {
 	
 	private static class TestResult {
 		public IResource resource;
@@ -107,38 +110,27 @@ public class FileSearchTests extends TestCase {
 
 	}
 
+	@ClassRule
+	public static JUnitSourceSetup fgJUnitSource= new JUnitSourceSetup();
+
 	private IProject fProject;
 	
-	public FileSearchTests(String name) {
-		super(name);
-	}
-	
-	public static Test allTests() {
-		return setUpTest(new TestSuite(FileSearchTests.class));
-	}
-	
-	public static Test setUpTest(Test test) {
-		return new JUnitSourceSetup(test);
-	}
-	
-	public static Test suite() {
-		return allTests();
-	}
-	
-	@Override
-	protected void setUp() throws Exception {
+	@Before
+	public void setUp() throws Exception{
 		fProject= ResourceHelper.createProject("my-project"); //$NON-NLS-1$
 	}
 	
-	@Override
-	protected void tearDown() throws Exception {
+	@After
+	public void tearDown() throws Exception {
 		ResourceHelper.deleteProject("my-project"); //$NON-NLS-1$
 	}
 
+	@Test
 	public void testSimpleFilesSerial() throws Exception {
 		testSimpleFiles(new SerialTestResultCollector());
 	}
-
+	
+	@Test
 	public void testSimpleFilesParallel() throws Exception {
 		testSimpleFiles(new ParallelTestResultCollector());
 	}
@@ -164,11 +156,13 @@ public class FileSearchTests extends TestCase {
 		assertMatches(results, 2, file1, buf.toString(), "hello");
 		assertMatches(results, 2, file2, buf.toString(), "hello");
 	}
-
+	
+	@Test
 	public void testWildCards1Serial() throws Exception {
 		testWildCards1(new SerialTestResultCollector());
 	}
-
+	
+	@Test
 	public void testWildCards1Parallel() throws Exception {
 		testWildCards1(new ParallelTestResultCollector());
 	}
@@ -192,11 +186,13 @@ public class FileSearchTests extends TestCase {
 		TestResult[] results= collector.getResults();
 		assertEquals("Number of total results", 6, results.length);
 	}
-
+	
+	@Test
 	public void testWildCards2Serial() throws Exception {
 		testWildCards2(new SerialTestResultCollector());
 	}
-
+	
+	@Test
 	public void testWildCards2Parallel() throws Exception {
 		testWildCards2(new ParallelTestResultCollector());
 	}
@@ -220,18 +216,20 @@ public class FileSearchTests extends TestCase {
 		TestResult[] results= collector.getResults();
 		assertEquals("Number of total results", 4, results.length);
 	}
-
+	
+	@Test
 	public void testWildCards3Serial() throws Exception {
 		testWildCards3(new SerialTestResultCollector());
 	}
-
+	
+	@Test
 	public void testWildCards3Parallel() throws Exception {
 		testWildCards3(new ParallelTestResultCollector());
 	}
 
 	private void testWildCards3(TestResultCollector collector) throws Exception {
 		
-		IProject project= JUnitSourceSetup.getStandardProject();
+		IProject project= fgJUnitSource.getStandardProject();
 		IFile openFile1= (IFile) project.findMember("junit/framework/TestCase.java");
 		IFile openFile2= (IFile) project.findMember("junit/extensions/ExceptionTestCase.java");
 		IFile openFile3= (IFile) project.findMember("junit/framework/Assert.java");
@@ -262,11 +260,13 @@ public class FileSearchTests extends TestCase {
 		}
 
 	}
-
+	
+	@Test
 	public void testWholeWordSerial() throws Exception {
 		testWholeWord(new SerialTestResultCollector());
 	}
-
+	
+	@Test
 	public void testWholeWordParallel() throws Exception {
 		testWholeWord(new ParallelTestResultCollector());
 	}
@@ -316,11 +316,13 @@ public class FileSearchTests extends TestCase {
 			assertEquals("Number of partial-word results", 22, collector.getNumberOfResults());
 		}
 	}
-
+	
+	@Test
 	public void testFileOpenInEditorSerial() throws Exception {
 		testFileOpenInEditor(new SerialTestResultCollector());
 	}
-
+	
+	@Test
 	public void testFileOpenInEditorParallel() throws Exception {
 		testFileOpenInEditor(new ParallelTestResultCollector());
 	}
@@ -352,11 +354,13 @@ public class FileSearchTests extends TestCase {
 			SearchPlugin.getActivePage().closeAllEditors(false);
 		}
 	}
-
+	
+	@Test
 	public void testDerivedFilesSerial() throws Exception {
 		testDerivedFiles(new SerialTestResultCollector());
 	}
-
+	
+	@Test
 	public void testDerivedFilesParallel() throws Exception {
 		testDerivedFiles(new ParallelTestResultCollector());
 	}
@@ -438,11 +442,13 @@ public class FileSearchTests extends TestCase {
 			assertEquals(0, collector.getNumberOfResults());
 		}
 	}
-
+	
+	@Test
 	public void testFileNamePatternsSerial() throws Exception {
 		testFileNamePatterns(new SerialTestResultCollector());
 	}
-
+	
+	@Test
 	public void testFileNamePatternsParallel() throws Exception {
 		testFileNamePatterns(new ParallelTestResultCollector());
 	}

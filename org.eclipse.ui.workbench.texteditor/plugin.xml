@@ -464,12 +464,27 @@
 	<extension point="org.eclipse.ui.commandImages">
 		<image
 			commandId="org.eclipse.ui.edit.text.zoomIn"
-			icon="$nl$/icons/full/etool16/zoomIn.gif">
+			icon="$nl$/icons/full/etool16/zoomIn.png">
 		</image>
 		<image
 			commandId="org.eclipse.ui.edit.text.zoomOut"
-			icon="$nl$/icons/full/etool16/zoomOut.gif">
+			icon="$nl$/icons/full/etool16/zoomOut.png">
 		</image>
+  <image
+        commandId="org.eclipse.ui.edit.text.toggleShowWhitespaceCharacters"
+        disabledIcon="$nl$/icons/full/dtool16/show_whitespace_chars.png"
+        icon="$nl$/icons/full/etool16/show_whitespace_chars.png">
+  </image>
+  <image
+        commandId="org.eclipse.ui.edit.text.toggleWordWrap"
+        disabledIcon="$nl$/icons/full/dtool16/wordwrap.png"
+        icon="$nl$/icons/full/etool16/wordwrap.png">
+  </image>
+  <image
+        commandId="org.eclipse.ui.edit.text.toggleBlockSelectionMode"
+        disabledIcon="$nl$/icons/full/dtool16/block_selection_mode.png"
+        icon="$nl$/icons/full/etool16/block_selection_mode.png">
+  </image>
 	</extension>
    
 	<extension
@@ -838,11 +853,6 @@
             commandId="org.eclipse.ui.edit.text.toggleBlockSelectionMode"
             schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"/>
       <key
-            sequence="M2+M3+Y"
-            contextId="org.eclipse.ui.textEditorScope"
-            commandId="org.eclipse.ui.edit.text.toggleWordWrap"
-            schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"/>
-      <key
             platform="carbon"
             sequence="M2+M3+A"
             contextId="org.eclipse.ui.textEditorScope"
@@ -853,6 +863,23 @@
             sequence="COMMAND+ALT+A"
             contextId="org.eclipse.ui.textEditorScope"
             commandId="org.eclipse.ui.edit.text.toggleBlockSelectionMode"
+            schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"/>
+      <key
+            sequence="M2+M3+Y"
+            contextId="org.eclipse.ui.textEditorScope"
+            commandId="org.eclipse.ui.edit.text.toggleWordWrap"
+            schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"/>
+      <key
+            platform="carbon"
+            sequence="M2+M3+Y"
+            contextId="org.eclipse.ui.textEditorScope"
+            commandId=""
+            schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"/>
+      <key
+            platform="carbon"
+            sequence="COMMAND+ALT+Y"
+            contextId="org.eclipse.ui.textEditorScope"
+            commandId="org.eclipse.ui.edit.text.toggleWordWrap"
             schemeId="org.eclipse.ui.defaultAcceleratorConfiguration"/>
             
       <key
@@ -1200,8 +1227,8 @@
                toolbarPath="Normal/Presentation"
                id="org.eclipse.ui.edit.text.toggleShowSelectedElementOnly"
                definitionId="org.eclipse.ui.edit.text.toggleShowSelectedElementOnly"
-               disabledIcon="$nl$/icons/full/dtool16/segment_edit.gif"
-               icon="$nl$/icons/full/etool16/segment_edit.gif"
+               disabledIcon="$nl$/icons/full/dtool16/segment_edit.png"
+               icon="$nl$/icons/full/etool16/segment_edit.png"
                helpContextId="org.eclipse.ui.only_show_selected_element_action_context"
                label="%onlyShowSelectedElement.label"
                retarget="true"
@@ -1210,9 +1237,9 @@
          <action
                allowLabelUpdate="true"
                definitionId="org.eclipse.ui.edit.text.toggleShowWhitespaceCharacters"
-               disabledIcon="$nl$/icons/full/dtool16/show_whitespace_chars.gif"
+               disabledIcon="$nl$/icons/full/dtool16/show_whitespace_chars.png"
                helpContextId="org.eclipse.ui.show_whitespace_characters_action_context"
-               icon="$nl$/icons/full/etool16/show_whitespace_chars.gif"
+               icon="$nl$/icons/full/etool16/show_whitespace_chars.png"
                id="org.eclipse.ui.edit.text.toggleShowWhitespaceCharacters"
                label="%showWhitespaceCharacters.label"
                retarget="true"
@@ -1223,9 +1250,9 @@
          <action
                allowLabelUpdate="true"
                definitionId="org.eclipse.ui.edit.text.toggleBlockSelectionMode"
-               disabledIcon="$nl$/icons/full/dtool16/block_selection_mode.gif"
+               disabledIcon="$nl$/icons/full/dtool16/block_selection_mode.png"
                helpContextId="org.eclipse.ui.block_selection_mode_action_context"
-               icon="$nl$/icons/full/etool16/block_selection_mode.gif"
+               icon="$nl$/icons/full/etool16/block_selection_mode.png"
                id="org.eclipse.ui.edit.text.toggleBlockSelectionMode"
                label="%toggleBlockSelectionMode.label"
                retarget="true"
@@ -1266,7 +1293,7 @@
          </fontValue>
          <fontValue
                os="win32"
-               value="Courier New-regular-10"
+               value="Consolas-regular-10"
                >
          </fontValue>
          <fontValue
@@ -1286,5 +1313,19 @@
             class="org.eclipse.ui.texteditor.TextZoomOutHandler"
             commandId="org.eclipse.ui.edit.text.zoomOut">
       </handler>
+   </extension>
+   <extension
+         point="org.eclipse.ui.menus">
+      <menuContribution
+            allPopups="false"
+            locationURI="menu:edit?after=selectAll">
+         <command
+               commandId="org.eclipse.ui.edit.text.toggleBlockSelectionMode"
+               style="push">
+            <visibleWhen
+                  checkEnabled="true">
+            </visibleWhen>
+         </command>
+      </menuContribution>
    </extension>
 </plugin>

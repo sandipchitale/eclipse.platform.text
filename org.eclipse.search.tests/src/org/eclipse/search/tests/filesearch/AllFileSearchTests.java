@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2005 IBM Corporation and others.
+ * Copyright (c) 2000, 2016 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -10,27 +10,22 @@
  *******************************************************************************/
 package org.eclipse.search.tests.filesearch;
 
-import junit.framework.Test;
-import junit.framework.TestSuite;
+import org.junit.ClassRule;
+import org.junit.runner.RunWith;
+import org.junit.runners.Suite;
+import org.junit.runners.Suite.SuiteClasses;
 
-public class AllFileSearchTests extends TestSuite {
-
-	public static Test suite() {
-		return new AllFileSearchTests();
-	}
-
-	public AllFileSearchTests() {
-		
-		TestSuite suite= new TestSuite();
-		suite.addTest(AnnotationManagerTest.allTests());
-		suite.addTest(FileSearchTests.allTests());
-		suite.addTest(LineAnnotationManagerTest.allTests());
-		suite.addTest(PositionTrackerTest.allTests());
-		suite.addTest(ResultUpdaterTest.allTests());
-		suite.addTest(SearchResultPageTest.allTests());
-		suite.addTest(SortingTest.allTests());
-		
-		addTest(new JUnitSourceSetup(suite));
-	}
-
+@RunWith(Suite.class)
+@SuiteClasses({
+		AnnotationManagerTest.class,
+		FileSearchTests.class,
+		LineAnnotationManagerTest.class,
+		PositionTrackerTest.class,
+		ResultUpdaterTest.class,
+		SearchResultPageTest.class,
+		SortingTest.class
+})
+public class AllFileSearchTests {
+	@ClassRule
+	public static JUnitSourceSetup fgJUnitSource= new JUnitSourceSetup();
 }

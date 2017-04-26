@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2015 IBM Corporation and others.
+ * Copyright (c) 2000, 2016 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -12,12 +12,13 @@
 package org.eclipse.jface.text;
 
 
-import java.util.AbstractList;
 import java.util.ArrayList;
+import java.util.Arrays;
 import java.util.HashMap;
 import java.util.Iterator;
 import java.util.List;
 import java.util.Map;
+import java.util.Map.Entry;
 import java.util.regex.PatternSyntaxException;
 
 import org.eclipse.core.runtime.Assert;
@@ -92,11 +93,11 @@ public abstract class AbstractDocument implements IDocument, IDocumentExtension,
 	/** The document's line tracker */
 	private ILineTracker fTracker;
 	/** The registered document listeners */
-	private ListenerList fDocumentListeners;
+	private ListenerList<IDocumentListener> fDocumentListeners;
 	/** The registered pre-notified document listeners */
-	private ListenerList fPrenotifiedDocumentListeners;
+	private ListenerList<IDocumentListener> fPrenotifiedDocumentListeners;
 	/** The registered document partitioning listeners */
-	private ListenerList fDocumentPartitioningListeners;
+	private ListenerList<IDocumentPartitioningListener> fDocumentPartitioningListeners;
 	/** All positions managed by the document ordered by their start positions. */
 	private Map<String, List<Position>> fPositions;
 	/**
@@ -211,21 +212,11 @@ public abstract class AbstractDocument implements IDocument, IDocumentExtension,
 		return fTracker;
 	}
 
-	private static <T> List<T> asList(Object[] listeners) {
-		// Workaround for Bug 483340: ListenerList should be parameterized
-		// Use Arrays.asList(..) once that bug is fixed.
-		return new AbstractList<T>() {
-			@SuppressWarnings("unchecked")
-			@Override
-			public T get(int index) {
-				return (T) listeners[index];
-			}
-	
-			@Override
-			public int size() {
-				return listeners.length;
-			}
-		};
+	private static <T> List<T> asList(ListenerList<T> listenerList) {
+		List<?> list= Arrays.asList(listenerList.getListeners());
+		@SuppressWarnings("unchecked")
+		List<T> castList= (List<T>) list;
+		return castList;
 	}
 
 
@@ -235,7 +226,7 @@ public abstract class AbstractDocument implements IDocument, IDocumentExtension,
 	 * @return the document's document listeners
 	 */
 	protected List<IDocumentListener> getDocumentListeners() {
-		return asList(fDocumentListeners.getListeners());
+		return asList(fDocumentListeners);
 	}
 
 	/**
@@ -244,7 +235,7 @@ public abstract class AbstractDocument implements IDocument, IDocumentExtension,
 	 * @return the document's partitioning listeners
 	 */
 	protected List<IDocumentPartitioningListener> getDocumentPartitioningListeners() {
-		return asList(fDocumentPartitioningListeners.getListeners());
+		return asList(fDocumentPartitioningListeners);
 	}
 
 	/**
@@ -300,9 +291,9 @@ public abstract class AbstractDocument implements IDocument, IDocumentExtension,
 		fPositions= new HashMap<>();
 		fEndPositions= new HashMap<>();
 		fPositionUpdaters= new ArrayList<>();
-		fDocumentListeners= new ListenerList(ListenerList.IDENTITY);
-		fPrenotifiedDocumentListeners= new ListenerList(ListenerList.IDENTITY);
-		fDocumentPartitioningListeners= new ListenerList(ListenerList.IDENTITY);
+		fDocumentListeners= new ListenerList<>(ListenerList.IDENTITY);
+		fPrenotifiedDocumentListeners= new ListenerList<>(ListenerList.IDENTITY);
+		fDocumentPartitioningListeners= new ListenerList<>(ListenerList.IDENTITY);
 		fDocumentRewriteSessionListeners= new ArrayList<>();
 
 		addPositionCategory(DEFAULT_CATEGORY);
@@ -544,9 +535,9 @@ public abstract class AbstractDocument implements IDocument, IDocumentExtension,
 		if (fDocumentPartitioningListeners == null)
 			return;
 
-		Object[] listeners= fDocumentPartitioningListeners.getListeners();
-		for (int i= 0; i < listeners.length; i++)
-			((IDocumentPartitioningListener)listeners[i]).documentPartitioningChanged(this);
+		for (IDocumentPartitioningListener listener : fDocumentPartitioningListeners) {
+			listener.documentPartitioningChanged(this);
+		}
 	}
 
 	/**
@@ -566,9 +557,7 @@ public abstract class AbstractDocument implements IDocument, IDocumentExtension,
 		if (fDocumentPartitioningListeners == null)
 			return;
 
-		Object[] listeners= fDocumentPartitioningListeners.getListeners();
-		for (int i= 0; i < listeners.length; i++) {
-			IDocumentPartitioningListener l= (IDocumentPartitioningListener)listeners[i];
+		for (IDocumentPartitioningListener l : fDocumentPartitioningListeners) {
 			try {
 				if (l instanceof IDocumentPartitioningListenerExtension)
 					((IDocumentPartitioningListenerExtension)l).documentPartitioningChanged(this, region);
@@ -593,9 +582,7 @@ public abstract class AbstractDocument implements IDocument, IDocumentExtension,
 		if (fDocumentPartitioningListeners == null)
 			return;
 
-		Object[] listeners= fDocumentPartitioningListeners.getListeners();
-		for (int i= 0; i < listeners.length; i++) {
-			IDocumentPartitioningListener l= (IDocumentPartitioningListener)listeners[i];
+		for (IDocumentPartitioningListener l : fDocumentPartitioningListeners) {
 			try {
 				if (l instanceof IDocumentPartitioningListenerExtension2) {
 					IDocumentPartitioningListenerExtension2 extension2= (IDocumentPartitioningListenerExtension2)l;
@@ -641,19 +628,17 @@ public abstract class AbstractDocument implements IDocument, IDocumentExtension,
 			}
 		}
 
-		Object[] listeners= fPrenotifiedDocumentListeners.getListeners();
-		for (int i= 0; i < listeners.length; i++) {
+		for (IDocumentListener listener : fPrenotifiedDocumentListeners) {
 			try {
-				((IDocumentListener)listeners[i]).documentAboutToBeChanged(event);
+				listener.documentAboutToBeChanged(event);
 			} catch (Exception ex) {
 				log(ex);
 			}
 		}
 
-		listeners= fDocumentListeners.getListeners();
-		for (int i= 0; i < listeners.length; i++) {
+		for (IDocumentListener listener : fDocumentListeners) {
 			try {
-				((IDocumentListener)listeners[i]).documentAboutToBeChanged(event);
+				listener.documentAboutToBeChanged(event);
 			} catch (Exception ex) {
 				log(ex);
 			}
@@ -671,10 +656,10 @@ public abstract class AbstractDocument implements IDocument, IDocumentExtension,
 
 		if (fDocumentPartitioners != null) {
 			fDocumentPartitioningChangedEvent= new DocumentPartitioningChangedEvent(this);
-			Iterator<String> e= fDocumentPartitioners.keySet().iterator();
-			while (e.hasNext()) {
-				String partitioning= e.next();
-				IDocumentPartitioner partitioner= fDocumentPartitioners.get(partitioning);
+			for (Entry<String, IDocumentPartitioner> entry : fDocumentPartitioners.entrySet()) {
+
+				String partitioning= entry.getKey();
+				IDocumentPartitioner partitioner= entry.getValue();
 
 				if (partitioner instanceof IDocumentPartitionerExtension3) {
 					IDocumentPartitionerExtension3 extension= (IDocumentPartitionerExtension3) partitioner;
@@ -746,19 +731,17 @@ public abstract class AbstractDocument implements IDocument, IDocumentExtension,
 		if (p != null && !p.isEmpty())
 			fireDocumentPartitioningChanged(p);
 
-		Object[] listeners= fPrenotifiedDocumentListeners.getListeners();
-		for (int i= 0; i < listeners.length; i++) {
+		for (IDocumentListener listener : fPrenotifiedDocumentListeners) {
 			try {
-				((IDocumentListener)listeners[i]).documentChanged(event);
+				listener.documentChanged(event);
 			} catch (Exception ex) {
 				log(ex);
 			}
 		}
 
-		listeners= fDocumentListeners.getListeners();
-		for (int i= 0; i < listeners.length; i++) {
+		for (IDocumentListener listener : fDocumentListeners) {
 			try {
-				((IDocumentListener)listeners[i]).documentChanged(event);
+				listener.documentChanged(event);
 			} catch (Exception ex) {
 				log(ex);
 			}
@@ -855,8 +838,8 @@ public abstract class AbstractDocument implements IDocument, IDocumentExtension,
 		String sysLineDelimiter= System.getProperty("line.separator"); //$NON-NLS-1$
 		String[] delimiters= getLegalLineDelimiters();
 		Assert.isTrue(delimiters.length > 0);
-		for (int i= 0; i < delimiters.length; i++) {
-			if (delimiters[i].equals(sysLineDelimiter)) {
+		for (String delimiter : delimiters) {
+			if (delimiter.equals(sysLineDelimiter)) {
 				lineDelimiter= sysLineDelimiter;
 				break;
 			}
@@ -1630,8 +1613,7 @@ public abstract class AbstractDocument implements IDocument, IDocumentExtension,
 
 			Position region= new Position(offset, length);
 
-			for (Iterator<Position> iterator= documentPositions.iterator(); iterator.hasNext();) {
-				Position position= iterator.next();
+			for (Position position : documentPositions) {
 				if (isWithinRegion(region, position, canStartBefore, canEndAfter)) {
 					list.add(position);
 				}

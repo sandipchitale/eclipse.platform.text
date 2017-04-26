@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2010 IBM Corporation and others.
+ * Copyright (c) 2000, 2016 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -321,9 +321,8 @@ public final class ChangeRulerColumn implements IChangeRulerColumn, IRevisionRul
 	public void redraw() {
 
 		if (fCachedTextViewer != null && fCanvas != null && !fCanvas.isDisposed()) {
-			if (VerticalRuler.IS_MAC_BUG_298936) {
+			if (VerticalRuler.AVOID_NEW_GC) {
 				fCanvas.redraw();
-				fCanvas.update();
 			} else {
 				GC gc= new GC(fCanvas);
 				doubleBufferPaint(gc);
@@ -493,7 +492,6 @@ public final class ChangeRulerColumn implements IChangeRulerColumn, IRevisionRul
 			if (lastLine < bottomLine || bottomLine == -1)
 				bottomLine= lastLine;
 		} catch (BadLocationException x) {
-			x.printStackTrace();
 			return null;
 		}
 

@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2015 IBM Corporation and others.
+ * Copyright (c) 2000, 2016 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -700,7 +700,7 @@ public class AnnotationRulerColumn implements IVerticalRulerColumn, IVerticalRul
 					int lines= endLine - startLine;
 
 					if (startLine != endLine || !isWrapActive || length <= 0) {
-						// line height for different lines includes wrapped line info already, 
+						// line height for different lines includes wrapped line info already,
 						// end we show annotations without offset info at very first line anyway
 						r.height= JFaceTextUtil.computeLineHeight(fCachedTextWidget, startLine, endLine + 1, lines + 1);
 						r.y= JFaceTextUtil.computeLineHeight(fCachedTextWidget, 0, startLine, startLine) - fScrollPos;
@@ -809,7 +809,7 @@ public class AnnotationRulerColumn implements IVerticalRulerColumn, IVerticalRul
 				int lines= endLine - startLine;
 
 				if(startLine != endLine || !isWrapActive || length <= 0){
-					// line height for different lines includes wrapped line info already, 
+					// line height for different lines includes wrapped line info already,
 					// end we show annotations without offset info at very first line anyway
 					r.height= JFaceTextUtil.computeLineHeight(fCachedTextWidget, startLine, endLine + 1, lines + 1);
 					r.y= JFaceTextUtil.computeLineHeight(fCachedTextWidget, 0, startLine, startLine)  - fScrollPos;
@@ -819,7 +819,7 @@ public class AnnotationRulerColumn implements IVerticalRulerColumn, IVerticalRul
 					r.height= textBounds.height;
 					r.y = textBounds.y;
 				}
-				
+
 				if (r.y < dimension.y && fAnnotationAccessExtension != null)  // annotation within visible area
 					fAnnotationAccessExtension.paint(annotation, gc, fCanvas, r);
 			}
@@ -849,9 +849,8 @@ public class AnnotationRulerColumn implements IVerticalRulerColumn, IVerticalRul
 	@Override
 	public void redraw() {
 		if (fCanvas != null && !fCanvas.isDisposed()) {
-			if (VerticalRuler.IS_MAC_BUG_298936) {
+			if (VerticalRuler.AVOID_NEW_GC) {
 				fCanvas.redraw();
-				fCanvas.update();
 			} else {
 				GC gc= new GC(fCanvas);
 				doubleBufferPaint(gc);

@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2006 IBM Corporation and others.
+ * Copyright (c) 2000, 2016 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -306,8 +306,7 @@ public class FastPartitioner implements IDocumentPartitioner, IDocumentPartition
 				if (partition.includes(reparseStart)) {
 					partitionStart= partition.getOffset();
 					contentType= partition.getType();
-					if (e.getOffset() == partition.getOffset() + partition.getLength())
-						reparseStart= partitionStart;
+					reparseStart= partitionStart;
 					-- first;
 				} else if (reparseStart == e.getOffset() && reparseStart == partition.getOffset() + partition.getLength()) {
 					partitionStart= partition.getOffset();
@@ -318,6 +317,9 @@ public class FastPartitioner implements IDocumentPartitioner, IDocumentPartition
 					partitionStart= partition.getOffset() + partition.getLength();
 					contentType= IDocument.DEFAULT_CONTENT_TYPE;
 				}
+			} else {
+				partitionStart= 0;
+				reparseStart= 0;
 			}
 
 			fPositionUpdater.update(e);
@@ -542,8 +544,8 @@ public class FastPartitioner implements IDocumentPartitioner, IDocumentPartition
 	 */
 	protected boolean isSupportedContentType(String contentType) {
 		if (contentType != null) {
-			for (int i= 0; i < fLegalContentTypes.length; i++) {
-				if (fLegalContentTypes[i].equals(contentType))
+			for (String fLegalContentType : fLegalContentTypes) {
+				if (fLegalContentType.equals(contentType))
 					return true;
 			}
 		}

@@ -12,7 +12,6 @@ package org.eclipse.jface.text.revisions;
 
 import java.util.ArrayList;
 import java.util.Collections;
-import java.util.Iterator;
 import java.util.List;
 
 import org.eclipse.core.runtime.Assert;
@@ -97,8 +96,7 @@ public final class RevisionInformation implements ITextHoverExtension, IInformat
 	public List<RevisionRange> getRanges() {
 		if (fRanges == null) {
 			List<RevisionRange> ranges= new ArrayList<>(fRevisions.size() * 2); // wild size guess
-			for (Iterator<Revision> it= fRevisions.iterator(); it.hasNext();) {
-				Revision revision= it.next();
+			for (Revision revision : fRevisions) {
 				ranges.addAll(revision.getRegions());
 			}
 
@@ -114,15 +112,15 @@ public final class RevisionInformation implements ITextHoverExtension, IInformat
 	 * Adjusts the revision information to the given diff information. Any previous diff information
 	 * is discarded. <strong>Note:</strong> This is an internal framework method and must not be
 	 * called by clients.
-	 * 
+	 *
 	 * @param hunks the diff hunks to adjust the revision information to
 	 * @since 3.3
 	 * @noreference This method is not intended to be referenced by clients.
 	 */
 	public void applyDiff(Hunk[] hunks) {
 		fRanges= null; // mark for recomputation
-		for (Iterator<Revision> revisions= getRevisions().iterator(); revisions.hasNext();)
-			revisions.next().applyDiff(hunks);
+		for (Revision revision : getRevisions())
+			revision.applyDiff(hunks);
 	}
 
 	@Override

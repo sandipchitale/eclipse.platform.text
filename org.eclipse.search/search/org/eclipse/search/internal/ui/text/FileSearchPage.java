@@ -20,6 +20,7 @@ import java.util.Set;
 
 import org.eclipse.swt.dnd.DND;
 import org.eclipse.swt.dnd.Transfer;
+import org.eclipse.swt.widgets.Display;
 
 import org.eclipse.core.runtime.IAdaptable;
 
@@ -34,10 +35,13 @@ import org.eclipse.jface.viewers.ISelection;
 import org.eclipse.jface.viewers.ISelectionProvider;
 import org.eclipse.jface.viewers.IStructuredContentProvider;
 import org.eclipse.jface.viewers.IStructuredSelection;
+import org.eclipse.jface.viewers.ITreeContentProvider;
+import org.eclipse.jface.viewers.ITreeViewerListener;
 import org.eclipse.jface.viewers.OpenEvent;
 import org.eclipse.jface.viewers.StructuredSelection;
 import org.eclipse.jface.viewers.StructuredViewer;
 import org.eclipse.jface.viewers.TableViewer;
+import org.eclipse.jface.viewers.TreeExpansionEvent;
 import org.eclipse.jface.viewers.TreeViewer;
 import org.eclipse.jface.viewers.Viewer;
 import org.eclipse.jface.viewers.ViewerComparator;
@@ -133,7 +137,7 @@ public class FileSearchPage extends AbstractTextSearchViewPage implements IAdapt
 		fSortByNameAction= new SortAction(SearchMessages.FileSearchPage_sort_name_label, this, FileLabelProvider.SHOW_LABEL_PATH);
 		fSortByPathAction= new SortAction(SearchMessages.FileSearchPage_sort_path_label, this, FileLabelProvider.SHOW_PATH_LABEL);
 
-		setElementLimit(new Integer(DEFAULT_ELEMENT_LIMIT));
+		setElementLimit(Integer.valueOf(DEFAULT_ELEMENT_LIMIT));
 	}
 
 	@Override
@@ -174,6 +178,50 @@ public class FileSearchPage extends AbstractTextSearchViewPage implements IAdapt
 		viewer.setComparator(new DecoratorIgnoringViewerSorter(innerLabelProvider));
 		fContentProvider= (IFileSearchContentProvider) viewer.getContentProvider();
 		addDragAdapters(viewer);
+		viewer.addTreeListener(new ITreeViewerListener() {
+			@Override
+			public void treeCollapsed(TreeExpansionEvent event) {
+			}
+
+			@Override
+			public void treeExpanded(TreeExpansionEvent event) {
+				autoExpand(viewer, event.getElement());
+			}
+		});
+	}
+
+	/**
+	 * Performs an auto-expansion starting at the given element in the viewer.
+	 * As long as the object only has one unexpanded child, auto-expand will
+	 * expand that child. It stops expanding children once there is actually a
+	 * choice for the user to make.
+	 *
+	 * @param viewer
+	 *            the viewer to perform auto-expansion on
+	 * @param toExpand
+	 *            the viewer entry at which expansion should start
+	 */
+	private void autoExpand(TreeViewer viewer, Object toExpand) {
+		final ITreeContentProvider contentProvider = (ITreeContentProvider) viewer.getContentProvider();
+		Display.getCurrent().asyncExec(() -> {
+			if (viewer.getControl().isDisposed()) {
+				return;
+			}
+			Object current = toExpand;
+			while (current != null) {
+				Object childToExpand = null;
+				Object[] children = contentProvider.getChildren(current);
+				if (children != null && children.length == 1) {
+					childToExpand = children[0];
+				}
+				if (childToExpand != null) {
+					if (!viewer.getExpandedState(childToExpand)) {
+						viewer.setExpandedState(childToExpand, true);
+					}
+				}
+				current = childToExpand;
+			}
+		});
 	}
 
 	@Override
@@ -203,6 +251,18 @@ public class FileSearchPage extends AbstractTextSearchViewPage implements IAdapt
 			}
 		}
 		super.handleOpen(event);
+		Object firstElement = ((IStructuredSelection) event.getSelection()).getFirstElement();
+		if (firstElement == null) {
+			return;
+		}
+		Viewer viewer = event.getViewer();
+		if (viewer instanceof TreeViewer) {
+			TreeViewer treeViewer = (TreeViewer) viewer;
+
+			if (treeViewer.getExpandedState(firstElement)) {
+				autoExpand(treeViewer, firstElement);
+			}
+		}
 	}
 
 	@Override
@@ -300,7 +360,7 @@ public class FileSearchPage extends AbstractTextSearchViewPage implements IAdapt
 			if (value != null)
 				elementLimit= value.intValue();
 		}
-		setElementLimit(new Integer(elementLimit));
+		setElementLimit(Integer.valueOf(elementLimit));
 	}
 	@Override
 	public void saveState(IMemento memento) {
@@ -359,12 +419,12 @@ public class FileSearchPage extends AbstractTextSearchViewPage implements IAdapt
 				if (showLineMatches()) {
 					int matchCount= getInput().getMatchCount();
 					if (itemCount < matchCount) {
-						return Messages.format(SearchMessages.FileSearchPage_limited_format_matches, new Object[]{label, new Integer(itemCount), new Integer(matchCount)});
+						return Messages.format(SearchMessages.FileSearchPage_limited_format_matches, new Object[]{label, Integer.valueOf(itemCount), Integer.valueOf(matchCount)});
 					}
 				} else {
 					int fileCount= getInput().getElements().length;
 					if (itemCount < fileCount) {
-						return Messages.format(SearchMessages.FileSearchPage_limited_format_files, new Object[]{label, new Integer(itemCount), new Integer(fileCount)});
+						return Messages.format(SearchMessages.FileSearchPage_limited_format_files, new Object[]{label, Integer.valueOf(itemCount), Integer.valueOf(fileCount)});
 					}
 				}
 			}

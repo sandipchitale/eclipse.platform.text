@@ -34,7 +34,7 @@ import org.eclipse.core.runtime.IStatus;
 import org.eclipse.core.runtime.Platform;
 import org.eclipse.core.runtime.QualifiedName;
 import org.eclipse.core.runtime.Status;
-import org.eclipse.core.runtime.SubProgressMonitor;
+import org.eclipse.core.runtime.SubMonitor;
 import org.eclipse.core.runtime.content.IContentDescription;
 import org.eclipse.core.runtime.content.IContentType;
 
@@ -63,6 +63,7 @@ public class ResourceTextFileBuffer extends ResourceFileBuffer implements ITextF
 
 		@Override
 		public void documentAboutToBeChanged(DocumentEvent event) {
+			// do nothing
 		}
 
 		@Override
@@ -199,18 +200,10 @@ public class ResourceTextFileBuffer extends ResourceFileBuffer implements ITextF
 	public IContentType getContentType() throws CoreException {
 		try {
 			if (isDirty()) {
-				Reader reader= null;
-				try {
-					reader= new DocumentReader(getDocument());
+				try(Reader reader = new DocumentReader(getDocument())) {
 					IContentDescription desc= Platform.getContentTypeManager().getDescriptionFor(reader, fFile.getName(), NO_PROPERTIES);
 					if (desc != null && desc.getContentType() != null)
 						return desc.getContentType();
-				} finally {
-					try {
-						if (reader != null)
-							reader.close();
-					} catch (IOException x) {
-					}
 				}
 			}
 			IContentDescription desc= fFile.getContentDescription();
@@ -384,26 +377,17 @@ public class ResourceTextFileBuffer extends ResourceFileBuffer implements ITextF
 			}
 
 		} else {
+			SubMonitor subMonitor= SubMonitor.convert(monitor, FileBuffersMessages.ResourceTextFileBuffer_task_saving, 2);
+			ContainerCreator creator= new ContainerCreator(fFile.getWorkspace(), fFile.getParent().getFullPath());
+			creator.createContainer(subMonitor.split(1));
 
-			monitor= Progress.getMonitor(monitor);
-			try {
-				monitor.beginTask(FileBuffersMessages.ResourceTextFileBuffer_task_saving, 2);
-				ContainerCreator creator = new ContainerCreator(fFile.getWorkspace(), fFile.getParent().getFullPath());
-				IProgressMonitor subMonitor= new SubProgressMonitor(monitor, 1);
-				creator.createContainer(subMonitor);
-				subMonitor.done();
+			fFile.create(stream, false, subMonitor.split(1));
 
-				subMonitor= new SubProgressMonitor(monitor, 1);
-				fFile.create(stream, false, subMonitor);
-				subMonitor.done();
-
-			} finally {
-				monitor.done();
-			}
 
 			// set synchronization stamp to know whether the file synchronizer must become active
 			fSynchronizationStamp= fFile.getModificationStamp();
 
+			subMonitor.split(1);
 			// TODO commit persistable annotation model
 		}
 
@@ -415,8 +399,8 @@ public class ResourceTextFileBuffer extends ResourceFileBuffer implements ITextF
 			return fExplicitEncoding;
 
 		// Probe content
-		Reader reader= new DocumentReader(fDocument);
-		try {
+
+		try(Reader reader= new DocumentReader(fDocument)) {
 			QualifiedName[] options= new QualifiedName[] { IContentDescription.CHARSET, IContentDescription.BYTE_ORDER_MARK };
 			IContentDescription description= Platform.getContentTypeManager().getDescriptionFor(reader, fFile.getName(), options);
 			if (description != null) {
@@ -426,11 +410,6 @@ public class ResourceTextFileBuffer extends ResourceFileBuffer implements ITextF
 			}
 		} catch (IOException ex) {
 			// try next strategy
-		} finally {
-			try {
-				reader.close();
-			} catch (IOException x) {
-			}
 		}
 
 		// Use file's encoding if the file has a BOM

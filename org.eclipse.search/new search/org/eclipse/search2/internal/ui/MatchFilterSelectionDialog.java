@@ -69,7 +69,7 @@ public class MatchFilterSelectionDialog extends StatusDialog {
 
 	/**
 	 * Creates a {@link MatchFilterSelectionDialog}.
-	 * 
+	 *
 	 * @param shell the parent shell
 	 * @param enableMatchFilterConfiguration <code>true</code> if match filter configuration should
 	 *            be enabled
@@ -234,7 +234,7 @@ public class MatchFilterSelectionDialog extends StatusDialog {
 		if (selectedElement != null)
 			fDescription.setText(((MatchFilter) selectedElement).getDescription());
 		else
-			fDescription.setText(new String());
+			fDescription.setText(""); //$NON-NLS-1$
 	}
 
 	private void performFilterListCheckStateChanged() {

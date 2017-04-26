@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2015 IBM Corporation and others.
+ * Copyright (c) 2000, 2016 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -10,7 +10,6 @@
  *******************************************************************************/
 package org.eclipse.jface.text.contentassist;
 
-import java.util.Iterator;
 import java.util.Stack;
 
 import org.eclipse.swt.SWT;
@@ -218,8 +217,7 @@ class ContextInformationPopup implements IContentAssistListener {
 						}
 
 						// also check all other contexts
-						for (Iterator<ContextFrame> it= fContextFrameStack.iterator(); it.hasNext(); ) {
-							ContextFrame stackFrame= it.next();
+						for (ContextFrame stackFrame : fContextFrameStack) {
 							if (stackFrame.equals(frame)) {
 								validateContextInformation();
 								return;
@@ -604,7 +602,7 @@ class ContextInformationPopup implements IContentAssistListener {
 
 	/**
 	 * Returns the size of the context selector pop-up.
-	 * 
+	 *
 	 * @return a Point containing the size
 	 * @since 3.9
 	 */
@@ -628,7 +626,7 @@ class ContextInformationPopup implements IContentAssistListener {
 
 	/**
 	 * Sets the contexts in the context selector to the given set.
-	 * 
+	 *
 	 * @param contexts the possible contexts
 	 * @param selectionIndex the index of the proposal to select
 	 */
@@ -642,8 +640,8 @@ class ContextInformationPopup implements IContentAssistListener {
 
 			TableItem item;
 			IContextInformation t;
-			for (int i= 0; i < contexts.length; i++) {
-				t= contexts[i];
+			for (IContextInformation context : contexts) {
+				t= context;
 				item= new TableItem(fContextSelectorTable, SWT.NULL);
 				if (t.getImage() != null)
 					item.setImage(t.getImage());
@@ -688,7 +686,7 @@ class ContextInformationPopup implements IContentAssistListener {
 	 */
 	public boolean hasFocus() {
 		if (Helper.okToUse(fContextSelectorShell))
-			return (fContextSelectorShell.isFocusControl() || fContextSelectorTable.isFocusControl());
+			return fContextSelectorShell.getDisplay().getActiveShell() == fContextSelectorShell;
 
 		return false;
 	}

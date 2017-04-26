@@ -626,7 +626,7 @@ abstract public class AbstractInformationControlManager {
 
 	/**
 	 * Tells whether the control takes focus when visible.
-	 * 
+	 *
 	 * @return <code>true</code> if the control takes focus when visible, <code>false</code>
 	 *         otherwise
 	 * @since 3.7
@@ -1105,9 +1105,7 @@ abstract public class AbstractInformationControlManager {
 		Monitor[] monitors = display.getMonitors();
 		Monitor result = monitors[0];
 
-		for (int idx = 0; idx < monitors.length; idx++) {
-			Monitor current = monitors[idx];
-
+		for (Monitor current : monitors) {
 			Rectangle clientArea = current.getClientArea();
 
 			if (clientArea.contains(toFind)) {
@@ -1264,7 +1262,7 @@ abstract public class AbstractInformationControlManager {
 
 	/**
 	 * Tells whether internal data can be cleared on hide.
-	 * 
+	 *
 	 * @return <code>true</code> if data can be cleared on hide
 	 * @see #hideInformationControl()
 	 * @since 3.6
@@ -1281,10 +1279,10 @@ abstract public class AbstractInformationControlManager {
 	 */
 	protected void showInformationControl(Rectangle subjectArea) {
 		fInformationControl.setVisible(true);
-		
+
 		if (fInformationControl == null)
 			return; // could already be disposed if setVisible(..) runs the display loop
-		
+
 		if (fTakesFocusWhenVisible)
 			fInformationControl.setFocus();
 

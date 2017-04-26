@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2015 IBM Corporation and others.
+ * Copyright (c) 2000, 2016 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -9,6 +9,13 @@
  *     IBM Corporation - initial API and implementation
  *******************************************************************************/
 package org.eclipse.search.tests.filesearch;
+
+import static org.junit.Assert.assertEquals;
+import static org.junit.Assert.assertNotNull;
+
+import org.junit.Before;
+import org.junit.ClassRule;
+import org.junit.Test;
 
 import org.eclipse.core.resources.IFile;
 
@@ -33,39 +40,22 @@ import org.eclipse.search.ui.text.Match;
 
 import org.eclipse.search2.internal.ui.InternalSearchUI;
 
-import junit.framework.Test;
-import junit.framework.TestCase;
-import junit.framework.TestSuite;
-
-public class PositionTrackerTest extends TestCase {
+public class PositionTrackerTest {
 	FileSearchQuery fQuery1;
 
-	public PositionTrackerTest(String name) {
-		super(name);
-	}
-		
-	public static Test allTests() {
-		return setUpTest(new TestSuite(PositionTrackerTest.class));
-	}
-	
-	public static Test suite() {
-		return allTests();
-	}
+	@ClassRule
+	public static JUnitSourceSetup junitSource= new JUnitSourceSetup();
 
-	public static Test setUpTest(Test test) {
-		return new JUnitSourceSetup(test);
-	}
-	
-	@Override
-	protected void setUp() throws Exception {
-		super.setUp();
-		
+	@Before
+	public void setUp() throws Exception {
 		String[] fileNamePatterns= { "*.java" };
 		FileTextSearchScope scope= FileTextSearchScope.newWorkspaceScope(fileNamePatterns, false);
 	
 		fQuery1= new FileSearchQuery("Test", false, true, scope);
 	}
 	
+	
+	@Test
 	public void testInsertAt0() throws Exception {
 		NewSearchUI.runQueryInForeground(null, fQuery1);
 		AbstractTextSearchResult result= (AbstractTextSearchResult) fQuery1.getSearchResult();
@@ -79,6 +69,7 @@ public class PositionTrackerTest extends TestCase {
 		}
 	}
 	
+	@Test
 	public void testInsertInsideMatch() throws Exception {
 		NewSearchUI.runQueryInForeground(null, fQuery1);
 		FileSearchResult result= (FileSearchResult) fQuery1.getSearchResult();

@@ -123,6 +123,7 @@ public class TextSelection implements ITextSelection {
 			if (fDocument != null)
 				return fDocument.getLineOfOffset(fOffset);
 		} catch (BadLocationException x) {
+			// ignore
 		}
 
 		return -1;
@@ -138,6 +139,7 @@ public class TextSelection implements ITextSelection {
 				return fDocument.getLineOfOffset(endOffset);
 			}
 		} catch (BadLocationException x) {
+			// ignore
 		}
 
 		return -1;
@@ -149,6 +151,7 @@ public class TextSelection implements ITextSelection {
 			if (fDocument != null)
 				return fDocument.get(fOffset, fLength);
 		} catch (BadLocationException x) {
+			// ignore
 		}
 
 		return null;
@@ -176,6 +179,7 @@ public class TextSelection implements ITextSelection {
 				String content= fDocument.get(fOffset, fLength);
 				return sContent.equals(content);
 			} catch (BadLocationException x) {
+				// ignore
 			}
 		}
 
@@ -190,12 +194,33 @@ public class TextSelection implements ITextSelection {
 
 	/**
 	 * Returns the document underlying the receiver, possibly <code>null</code>.
-	 * 
+	 *
 	 * @return the document underlying the receiver, possibly <code>null</code>
 	 * @since 3.5
 	 */
 	protected IDocument getDocument() {
 		return fDocument;
+	}
+
+	@Override
+	public String toString() {
+		StringBuilder sb = new StringBuilder();
+		sb.append("TextSelection [offset: ").append(fOffset); //$NON-NLS-1$
+		int startLine = getStartLine();
+		sb.append(", startLine: ").append(startLine); //$NON-NLS-1$
+		int endLine = getEndLine();
+		if (endLine != startLine) {
+			sb.append(", endLine: ").append(endLine); //$NON-NLS-1$
+		}
+		sb.append(", length: ").append(fLength); //$NON-NLS-1$
+		if (fLength != 0) {
+			sb.append(", text: ").append(getText()); //$NON-NLS-1$
+		}
+		if (fDocument != null) {
+			sb.append(", document: ").append(fDocument); //$NON-NLS-1$
+		}
+		sb.append("]"); //$NON-NLS-1$
+		return sb.toString();
 	}
 }
 

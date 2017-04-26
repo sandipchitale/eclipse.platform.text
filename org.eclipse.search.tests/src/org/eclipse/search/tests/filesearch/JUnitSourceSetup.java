@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2005 IBM Corporation and others.
+ * Copyright (c) 2000, 2016 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -10,36 +10,36 @@
  *******************************************************************************/
 package org.eclipse.search.tests.filesearch;
 
-import junit.extensions.TestSetup;
-import junit.framework.Test;
+import org.junit.rules.ExternalResource;
 
-import org.eclipse.search.tests.ResourceHelper;
+import org.eclipse.core.runtime.CoreException;
 
 import org.eclipse.core.resources.IProject;
 import org.eclipse.core.resources.ResourcesPlugin;
 
-public class JUnitSourceSetup extends TestSetup {
+import org.eclipse.search.tests.ResourceHelper;
+
+public class JUnitSourceSetup extends ExternalResource {
 	
 	public static final String STANDARD_PROJECT_NAME= "JUnitSource";
 	
 	private IProject fProject= null;
 	private final String fProjectName;
 		
-	public static IProject getStandardProject() {
+	public IProject getStandardProject() {
 		return ResourcesPlugin.getWorkspace().getRoot().getProject(STANDARD_PROJECT_NAME);
 	}
 
-	public JUnitSourceSetup(Test test) {
-		this(test, STANDARD_PROJECT_NAME);
+	public JUnitSourceSetup() {
+		this(STANDARD_PROJECT_NAME);
 	}
 	
-	public JUnitSourceSetup(Test test, String projectName) {
-		super(test);
+	public JUnitSourceSetup(String projectName) {
 		fProjectName= projectName;
 	}
 		
 	@Override
-	protected void setUp() throws Exception {
+	public void before() throws Exception {
 		IProject project= ResourcesPlugin.getWorkspace().getRoot().getProject(fProjectName);
 		if (!project.exists()) { // allow nesting of JUnitSetups
 			fProject= ResourceHelper.createJUnitSourceProject(fProjectName);
@@ -47,14 +47,15 @@ public class JUnitSourceSetup extends TestSetup {
 	}
 	
 	@Override
-	protected void tearDown() throws Exception {
+	public void after() /*throws Exception (but JUnit4 API is stupid...)*/ {
 		if (fProject != null) { // delete only by the setup who created the project
-			ResourceHelper.deleteProject(fProjectName);
+			try {
+				ResourceHelper.deleteProject(fProjectName);
+			} catch (CoreException e) {
+				throw new AssertionError(e); // workaround stupid JUnit4 API
+			}
 			fProject= null;
 		}
 	}
-	
-
-	
 
 }

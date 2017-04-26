@@ -164,6 +164,10 @@ public interface IInformationControl {
 	 * The suggested implementation is like this (<code>fShell</code> is this information control's shell):
 	 * <pre>return fShell.getDisplay().getActiveShell() == fShell</pre>
 	 *
+	 * <p>Note that implementations of {@link IInformationControlExtension5} are required to use this
+	 * suggested implementation.
+	 * </p>
+	 *
 	 * @return <code>true</code> when the information control has the focus, otherwise <code>false</code>
 	 */
 	boolean isFocusControl();

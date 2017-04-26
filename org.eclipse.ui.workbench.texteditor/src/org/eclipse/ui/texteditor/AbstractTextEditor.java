@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2015 IBM Corporation and others.
+ * Copyright (c) 2000, 2016 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -267,7 +267,7 @@ public abstract class AbstractTextEditor extends EditorPart implements ITextEdit
 
 	/**
 	 * Tag used in the {@link IMemento} when saving and restoring the editor's selection offset.
-	 * 
+	 *
 	 * @see #saveState(IMemento)
 	 * @see #restoreState(IMemento)
 	 * @see #doRestoreState(IMemento)
@@ -277,7 +277,7 @@ public abstract class AbstractTextEditor extends EditorPart implements ITextEdit
 
 	/**
 	 * Tag used in the {@link IMemento} when saving and restoring the editor's selection length.
-	 * 
+	 *
 	 * @see #saveState(IMemento)
 	 * @see #restoreState(IMemento)
 	 * @see #doRestoreState(IMemento)
@@ -287,7 +287,7 @@ public abstract class AbstractTextEditor extends EditorPart implements ITextEdit
 
 	/**
 	 * Tag used in the {@link IMemento} when saving and restoring the editor's top pixel value.
-	 * 
+	 *
 	 * @see #saveState(IMemento)
 	 * @see #restoreState(IMemento)
 	 * @see #doRestoreState(IMemento)
@@ -298,7 +298,7 @@ public abstract class AbstractTextEditor extends EditorPart implements ITextEdit
 	/**
 	 * Tag used in the {@link IMemento} when saving and restoring the editor's horizontal pixel
 	 * value.
-	 * 
+	 *
 	 * @see #saveState(IMemento)
 	 * @see #restoreState(IMemento)
 	 * @see #doRestoreState(IMemento)
@@ -325,7 +325,7 @@ public abstract class AbstractTextEditor extends EditorPart implements ITextEdit
 
 	/**
 	 * The symbolic name of the block selection mode font.
-	 * 
+	 *
 	 * @since 3.5
 	 */
 	private static final String BLOCK_SELECTION_MODE_FONT= "org.eclipse.ui.workbench.texteditor.blockSelectionModeFont"; //$NON-NLS-1$
@@ -1871,10 +1871,10 @@ public abstract class AbstractTextEditor extends EditorPart implements ITextEdit
 
 			return getInformationPresenter().openFocusedAnnotationHover(annotationHover, line);
         }
-		
+
 		/**
 		 * Returns the information presenter (creates it if necessary).
-		 * 
+		 *
 		 * @return the information presenter
 		 * @since 3.6
 		 */
@@ -2032,13 +2032,13 @@ public abstract class AbstractTextEditor extends EditorPart implements ITextEdit
 	 * @since 3.3
 	 */
 	public static final String PREFERENCE_RULER_CONTRIBUTIONS= "rulerContributions"; //$NON-NLS-1$
-	
+
 	/**
 	 * A named preference that controls the display of whitespace characters.
 	 * <p>
 	 * Value is of type <code>Boolean</code>.
 	 * </p>
-	 * 
+	 *
 	 * <p>
 	 * The following preferences can be used for fine-grained configuration when enabled.
 	 * <ul>
@@ -2056,7 +2056,7 @@ public abstract class AbstractTextEditor extends EditorPart implements ITextEdit
 	 * <li>{@link #PREFERENCE_WHITESPACE_CHARACTER_ALPHA_VALUE}</li>
 	 * </ul>
 	 * </p>
-	 * 
+	 *
 	 * @since 3.3
 	 */
 	public static final String PREFERENCE_SHOW_WHITESPACE_CHARACTERS= "showWhitespaceCharacters"; //$NON-NLS-1$
@@ -2067,7 +2067,7 @@ public abstract class AbstractTextEditor extends EditorPart implements ITextEdit
 	 * <p>
 	 * Value is of type <code>Boolean</code>.
 	 * </p>
-	 * 
+	 *
 	 * @since 3.7
 	 */
 	public static final String PREFERENCE_SHOW_LEADING_SPACES= "showLeadingSpaces"; //$NON-NLS-1$
@@ -2078,7 +2078,7 @@ public abstract class AbstractTextEditor extends EditorPart implements ITextEdit
 	 * <p>
 	 * Value is of type <code>Boolean</code>.
 	 * </p>
-	 * 
+	 *
 	 * @since 3.7
 	 */
 	public static final String PREFERENCE_SHOW_ENCLOSED_SPACES= "showEnclosedSpaces"; //$NON-NLS-1$
@@ -2089,7 +2089,7 @@ public abstract class AbstractTextEditor extends EditorPart implements ITextEdit
 	 * <p>
 	 * Value is of type <code>Boolean</code>.
 	 * </p>
-	 * 
+	 *
 	 * @since 3.7
 	 */
 	public static final String PREFERENCE_SHOW_TRAILING_SPACES= "showTrailingSpaces"; //$NON-NLS-1$
@@ -2101,7 +2101,7 @@ public abstract class AbstractTextEditor extends EditorPart implements ITextEdit
 	 * <p>
 	 * Value is of type <code>Boolean</code>.
 	 * </p>
-	 * 
+	 *
 	 * @since 3.7
 	 */
 	public static final String PREFERENCE_SHOW_LEADING_IDEOGRAPHIC_SPACES= "showLeadingIdeographicSpaces"; //$NON-NLS-1$
@@ -2113,7 +2113,7 @@ public abstract class AbstractTextEditor extends EditorPart implements ITextEdit
 	 * <p>
 	 * Value is of type <code>Boolean</code>.
 	 * </p>
-	 * 
+	 *
 	 * @since 3.7
 	 */
 	public static final String PREFERENCE_SHOW_ENCLOSED_IDEOGRAPHIC_SPACES= "showEnclosedIdeographicSpaces"; //$NON-NLS-1$
@@ -2125,7 +2125,7 @@ public abstract class AbstractTextEditor extends EditorPart implements ITextEdit
 	 * <p>
 	 * Value is of type <code>Boolean</code>.
 	 * </p>
-	 * 
+	 *
 	 * @since 3.7
 	 */
 	public static final String PREFERENCE_SHOW_TRAILING_IDEOGRAPHIC_SPACES= "showTrailingIdeographicSpaces"; //$NON-NLS-1$
@@ -2136,7 +2136,7 @@ public abstract class AbstractTextEditor extends EditorPart implements ITextEdit
 	 * <p>
 	 * Value is of type <code>Boolean</code>.
 	 * </p>
-	 * 
+	 *
 	 * @since 3.7
 	 */
 	public static final String PREFERENCE_SHOW_LEADING_TABS= "showLeadingTabs"; //$NON-NLS-1$
@@ -2147,7 +2147,7 @@ public abstract class AbstractTextEditor extends EditorPart implements ITextEdit
 	 * <p>
 	 * Value is of type <code>Boolean</code>.
 	 * </p>
-	 * 
+	 *
 	 * @since 3.7
 	 */
 	public static final String PREFERENCE_SHOW_ENCLOSED_TABS= "showEnclosedTabs"; //$NON-NLS-1$
@@ -2158,7 +2158,7 @@ public abstract class AbstractTextEditor extends EditorPart implements ITextEdit
 	 * <p>
 	 * Value is of type <code>Boolean</code>.
 	 * </p>
-	 * 
+	 *
 	 * @since 3.7
 	 */
 	public static final String PREFERENCE_SHOW_TRAILING_TABS= "showTrailingTabs"; //$NON-NLS-1$
@@ -2169,7 +2169,7 @@ public abstract class AbstractTextEditor extends EditorPart implements ITextEdit
 	 * <p>
 	 * Value is of type <code>Boolean</code>.
 	 * </p>
-	 * 
+	 *
 	 * @since 3.7
 	 */
 	public static final String PREFERENCE_SHOW_CARRIAGE_RETURN= "showCarriageReturn"; //$NON-NLS-1$
@@ -2180,7 +2180,7 @@ public abstract class AbstractTextEditor extends EditorPart implements ITextEdit
 	 * <p>
 	 * Value is of type <code>Boolean</code>.
 	 * </p>
-	 * 
+	 *
 	 * @since 3.7
 	 */
 	public static final String PREFERENCE_SHOW_LINE_FEED= "showLineFeed"; //$NON-NLS-1$
@@ -2191,7 +2191,7 @@ public abstract class AbstractTextEditor extends EditorPart implements ITextEdit
 	 * <p>
 	 * Value is of type <code>Integer</code>.
 	 * </p>
-	 * 
+	 *
 	 * @since 3.7
 	 */
 	public static final String PREFERENCE_WHITESPACE_CHARACTER_ALPHA_VALUE= "whitespaceCharacterAlphaValue"; //$NON-NLS-1$
@@ -2241,14 +2241,14 @@ public abstract class AbstractTextEditor extends EditorPart implements ITextEdit
 
 	/**
 	 * Menu id used to contribute to the editor context menu of all textual editors.
-	 * 
+	 *
 	 * @since 3.5
 	 */
 	public static final String COMMON_EDITOR_CONTEXT_MENU_ID= "#AbstractTextEditorContext"; //$NON-NLS-1$
 
 	/**
 	 * Menu id used to contribute to the ruler context menu of all textual editors.
-	 * 
+	 *
 	 * @since 3.5
 	 */
 	public static final String COMMON_RULER_CONTEXT_MENU_ID= "#AbstractTextEditorRulerContext"; //$NON-NLS-1$
@@ -3447,7 +3447,7 @@ public abstract class AbstractTextEditor extends EditorPart implements ITextEdit
 
 		if (fRulerContextMenuId == null)
 			fRulerContextMenuId= DEFAULT_RULER_CONTEXT_MENU_ID;
-		
+
 		initializeZoomGestures(rulerControl, fSourceViewer);
 
 		getSite().setSelectionProvider(getSelectionProvider());
@@ -3754,7 +3754,7 @@ public abstract class AbstractTextEditor extends EditorPart implements ITextEdit
 
 	/**
 	 * Disposes of the non-shared font.
-	 * 
+	 *
 	 * @since 3.5
 	 */
 	private void disposeFont() {
@@ -3838,7 +3838,7 @@ public abstract class AbstractTextEditor extends EditorPart implements ITextEdit
 						IStatusField statusField= getStatusField(ITextEditorActionConstants.STATUS_CATEGORY_INPUT_POSITION);
 						if (statusField != null) {
 							int newHeight= styledText.getFont().getFontData()[0].getHeight();
-							statusField.setText(NLSUtility.format(EditorMessages.Editor_font_reset_message, new Integer(newHeight)));
+							statusField.setText(NLSUtility.format(EditorMessages.Editor_font_reset_message, Integer.valueOf(newHeight)));
 						}
 					}
 				} else if (e.detail == SWT.GESTURE_MAGNIFY && fMagnificationStartFont != null) {
@@ -3854,7 +3854,7 @@ public abstract class AbstractTextEditor extends EditorPart implements ITextEdit
 						updateCaret();
 						IStatusField statusField= getStatusField(ITextEditorActionConstants.STATUS_CATEGORY_INPUT_POSITION);
 						if (statusField != null) {
-							statusField.setText(NLSUtility.format(EditorMessages.Editor_font_zoom_message, new Object[] { new Integer(startHeight), new Integer(newHeight) }));
+							statusField.setText(NLSUtility.format(EditorMessages.Editor_font_zoom_message, new Object[] { Integer.valueOf(startHeight), Integer.valueOf(newHeight) }));
 						}
 					}
 				}
@@ -4451,7 +4451,7 @@ public abstract class AbstractTextEditor extends EditorPart implements ITextEdit
 			fKeyBindingSupportForQuickAssistant.dispose();
 			fKeyBindingSupportForQuickAssistant= null;
 		}
-		
+
 		if (fInformationPresenter != null) {
 			fInformationPresenter.uninstall();
 			fInformationPresenter= null;
@@ -4522,7 +4522,7 @@ public abstract class AbstractTextEditor extends EditorPart implements ITextEdit
 	 * {@link JFaceResources#TEXT_FONT} is returned and the font is looked up in this editor's
 	 * preference store.
 	 * </p>
-	 * 
+	 *
 	 * @return a String with the key
 	 * @since 2.1
 	 */
@@ -4697,9 +4697,13 @@ public abstract class AbstractTextEditor extends EditorPart implements ITextEdit
 
 				if (dialog.open() == 0) {
 					IProgressMonitor pm= getProgressMonitor();
-					performSaveAs(pm);
-					if (pm.isCanceled())
-						handleEditorInputChanged();
+					try {
+						performSaveAs(pm);
+						if (pm.isCanceled())
+							handleEditorInputChanged();
+					} finally {
+						pm.done();
+					}
 				} else {
 					close(false);
 				}
@@ -4755,12 +4759,17 @@ public abstract class AbstractTextEditor extends EditorPart implements ITextEdit
 	 */
 	@Override
 	public void doSaveAs() {
-		/*
-		 * 1GEUSSR: ITPUI:ALL - User should never loose changes made in the editors.
-		 * Changed Behavior to make sure that if called inside a regular save (because
-		 * of deletion of input element) there is a way to report back to the caller.
-		 */
-		performSaveAs(getProgressMonitor());
+		IProgressMonitor monitor= getProgressMonitor();
+		try {
+			/*
+			 * 1GEUSSR: ITPUI:ALL - User should never loose changes made in the editors.
+			 * Changed Behavior to make sure that if called inside a regular save (because
+			 * of deletion of input element) there is a way to report back to the caller.
+			 */
+			performSaveAs(monitor);
+		} finally {
+			monitor.done();
+		}
 	}
 
 	/**
@@ -5604,7 +5613,7 @@ public abstract class AbstractTextEditor extends EditorPart implements ITextEdit
 	 * Registers the given undo/redo action under the given ID and ensures that previously installed
 	 * actions get disposed. It also takes care of re-registering the new action with the global
 	 * action handler.
-	 * 
+	 *
 	 * @param actionId the action id under which to register the action
 	 * @param action the action to register or <code>null</code> to dispose them
 	 * @since 3.1
@@ -5845,7 +5854,7 @@ public abstract class AbstractTextEditor extends EditorPart implements ITextEdit
 		action.setActionDefinitionId(ITextEditorActionDefinitionIds.CONTENT_ASSIST_PROPOSALS);
 		setAction(ITextEditorActionConstants.CONTENT_ASSIST, action);
 		markAsStateDependentAction(ITextEditorActionConstants.CONTENT_ASSIST, true);
-		
+
 		action= new TextOperationAction(EditorMessages.getBundleForConstructedKeys(), "Editor.ContentAssistContextInformation.", this, ISourceViewer.CONTENTASSIST_CONTEXT_INFORMATION); //$NON-NLS-1$
 		action.setHelpContextId(IAbstractTextEditorHelpContextIds.CONTENT_ASSIST_CONTEXT_INFORMATION_ACTION);
 		action.setActionDefinitionId(ITextEditorActionDefinitionIds.CONTENT_ASSIST_CONTEXT_INFORMATION);
@@ -7237,7 +7246,7 @@ public abstract class AbstractTextEditor extends EditorPart implements ITextEdit
 	 * By default block selection mode is supported. Subclasses may override this method to disable
 	 * it.
 	 * </p>
-	 * 
+	 *
 	 * @return <code>true</code> if block selection mode is supported, <code>false</code> otherwise
 	 * @since 3.5
 	 */
@@ -7384,6 +7393,10 @@ public abstract class AbstractTextEditor extends EditorPart implements ITextEdit
 	 * @since 3.10
 	 */
 	protected boolean getInitialWordWrapStatus() {
-		return getPreferenceStore().getBoolean(PREFERENCE_WORD_WRAP_ENABLED);
+		IPreferenceStore store= getPreferenceStore();
+		if (store == null) {
+			return false;
+		}
+		return store.getBoolean(PREFERENCE_WORD_WRAP_ENABLED);
 	}
 }

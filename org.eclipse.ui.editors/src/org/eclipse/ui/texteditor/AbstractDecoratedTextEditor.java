@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2015 IBM Corporation and others.
+ * Copyright (c) 2000, 2016 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -1502,9 +1502,9 @@ public abstract class AbstractDecoratedTextEditor extends StatusTextEditor {
 		if (input instanceof IURIEditorInput && !(input instanceof IFileEditorInput)) {
 			FileDialog dialog= new FileDialog(shell, SWT.SAVE);
 			IPath oldPath= URIUtil.toPath(((IURIEditorInput)input).getURI());
-			if (oldPath != null) {
+			if (oldPath != null && !oldPath.isEmpty()) {
 				dialog.setFileName(oldPath.lastSegment());
-				dialog.setFilterPath(oldPath.toOSString());
+				dialog.setFilterPath(oldPath.removeLastSegments(1).toOSString());
 			}
 
 			String path= dialog.open();
@@ -1670,7 +1670,12 @@ public abstract class AbstractDecoratedTextEditor extends StatusTextEditor {
 
 		if (returnCode == saveAsUTF8ButtonId) {
 			((IStorageDocumentProvider)documentProvider).setEncoding(getEditorInput(), "UTF-8"); //$NON-NLS-1$
-			doSave(getProgressMonitor());
+			IProgressMonitor monitor= getProgressMonitor();
+			try {
+				doSave(monitor);
+			} finally {
+				monitor.done();
+			}
 		} else if (returnCode == selectUnmappableCharButtonId) {
 			CharsetEncoder encoder= charset.newEncoder();
 			IDocument document= getDocumentProvider().getDocument(getEditorInput());
@@ -1783,8 +1788,11 @@ public abstract class AbstractDecoratedTextEditor extends StatusTextEditor {
 	}
 
 	private String findSelectedOverviewRulerAnnotationLabel() {
-		Point selection= getSourceViewer().getSelectedRange();
 		IAnnotationModel model= getSourceViewer().getAnnotationModel();
+		if (model == null) {
+			return null;
+		}
+		Point selection= getSourceViewer().getSelectedRange();
 		Annotation annotation= null;
 		Iterator<Annotation> iter= model.getAnnotationIterator();
 		while (iter.hasNext()) {

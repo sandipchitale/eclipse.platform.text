@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2006, 2015 IBM Corporation and others.
+ * Copyright (c) 2006, 2016 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -14,7 +14,6 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 import java.util.HashMap;
-import java.util.Iterator;
 import java.util.List;
 import java.util.ListIterator;
 import java.util.Map;
@@ -161,8 +160,7 @@ public final class RevisionPainter {
 			if (info == null)
 				return;
 			List<Long> revisions= new ArrayList<>();
-			for (Iterator<Revision> it= info.getRevisions().iterator(); it.hasNext();) {
-				Revision revision= it.next();
+			for (Revision revision : info.getRevisions()) {
 				revisions.add(new Long(computeAge(revision)));
 			}
 			Collections.sort(revisions);
@@ -504,7 +502,7 @@ public final class RevisionPainter {
 	 * The list of revision listeners.
 	 * @since 3.3.
 	 */
-	private final ListenerList fRevisionListeners= new ListenerList(ListenerList.IDENTITY);
+	private final ListenerList<IRevisionListener> fRevisionListeners= new ListenerList<>(ListenerList.IDENTITY);
 
 	/* The context - column and viewer we are connected to. */
 
@@ -694,8 +692,7 @@ public final class RevisionPainter {
 
 		// draw change regions
 		List<RevisionRange> ranges= getRanges(visibleLines);
-		for (Iterator<RevisionRange> it= ranges.iterator(); it.hasNext();) {
-			RevisionRange region= it.next();
+		for (RevisionRange region : ranges) {
 			paintRange(region, gc);
 		}
 	}
@@ -907,8 +904,7 @@ public final class RevisionPainter {
 		if (ranges.isEmpty() || line == -1)
 			return null;
 
-		for (Iterator<RevisionRange> it= ranges.iterator(); it.hasNext();) {
-			RevisionRange range= it.next();
+		for (RevisionRange range : ranges) {
 			if (contains(range, line))
 				return range;
 		}
@@ -1033,7 +1029,6 @@ public final class RevisionPainter {
 				widgetStartLine= Math.max(0, range.getStartLine() - visibleStartLine);
 				widgetEndLine= Math.min(visibleEndLine, end(range) - 1);
 			} catch (BadLocationException x) {
-				x.printStackTrace();
 				// ignore and return null
 			}
 		}
@@ -1078,8 +1073,7 @@ public final class RevisionPainter {
 		Map<Annotation, Position> added= null;
 		if (revision != null) {
 			added= new HashMap<>();
-			for (Iterator<RevisionRange> it= revision.getRegions().iterator(); it.hasNext();) {
-				RevisionRange range= it.next();
+			for (RevisionRange range : revision.getRegions()) {
 				try {
 					IRegion charRegion= toCharRegion(range);
 					Position position= new Position(charRegion.getOffset(), charRegion.getLength());
@@ -1095,13 +1089,11 @@ public final class RevisionPainter {
 			IAnnotationModelExtension ext= (IAnnotationModelExtension) fAnnotationModel;
 			ext.replaceAnnotations(fAnnotations.toArray(new Annotation[fAnnotations.size()]), added);
 		} else {
-			for (Iterator<Annotation> it= fAnnotations.iterator(); it.hasNext();) {
-				Annotation annotation= it.next();
+			for (Annotation annotation : fAnnotations) {
 				fAnnotationModel.removeAnnotation(annotation);
 			}
 			if (added != null) {
-				for (Iterator<Entry<Annotation, Position>> it= added.entrySet().iterator(); it.hasNext();) {
-					Entry<Annotation, Position> entry= it.next();
+				for (Entry<Annotation, Position> entry : added.entrySet()) {
 					fAnnotationModel.addAnnotation(entry.getKey(), entry.getValue());
 				}
 			}
@@ -1133,7 +1125,7 @@ public final class RevisionPainter {
 
 	/**
 	 * Handles the selection of a revision and informs listeners.
-	 * 
+	 *
 	 * @param revision the selected revision, <code>null</code> for none
 	 */
 	void handleRevisionSelected(Revision revision) {
@@ -1156,8 +1148,7 @@ public final class RevisionPainter {
 		if (fRevisionInfo == null)
 			return;
 
-		for (Iterator<Revision> it= fRevisionInfo.getRevisions().iterator(); it.hasNext();) {
-			Revision revision= it.next();
+		for (Revision revision : fRevisionInfo.getRevisions()) {
 			if (id.equals(revision.getId())) {
 				handleRevisionSelected(revision);
 				return;
@@ -1266,7 +1257,7 @@ public final class RevisionPainter {
 			fWheelHandlerInstalled= true;
 		}
 	}
-	
+
 	/**
 	 * @return <code>true</code> iff the mouse wheel handler is installed and others should avoid
 	 *         handling mouse wheel events
@@ -1289,8 +1280,7 @@ public final class RevisionPainter {
 		ILineRange last= null;
 		List<RevisionRange> ranges= fFocusRevision.getRegions();
 		if (up) {
-			for (Iterator<RevisionRange> it= ranges.iterator(); it.hasNext();) {
-				RevisionRange range= it.next();
+			for (RevisionRange range : ranges) {
 				ILineRange widgetRange= modelLinesToWidgetLines(range);
 				if (contains(range, documentHoverLine)) {
 					nextWidgetRange= last;
@@ -1459,8 +1449,7 @@ public final class RevisionPainter {
 			if (hasInformation() && (fShowRevision || fShowAuthor)) {
 				int revisionWidth= 0;
 				int authorWidth= 0;
-				for (Iterator<Revision> it= fRevisionInfo.getRevisions().iterator(); it.hasNext();) {
-					Revision revision= it.next();
+				for (Revision revision : fRevisionInfo.getRevisions()) {
 					revisionWidth= Math.max(revisionWidth, revision.getId().length());
 					authorWidth= Math.max(authorWidth, revision.getAuthor().length());
 				}
@@ -1536,9 +1525,7 @@ public final class RevisionPainter {
 			return;
 
 		RevisionEvent event= new RevisionEvent(fRevisionInfo);
-		Object[] listeners= fRevisionListeners.getListeners();
-		for (int i= 0; i < listeners.length; i++) {
-			IRevisionListener listener= (IRevisionListener) listeners[i];
+		for (IRevisionListener listener : fRevisionListeners) {
 			listener.revisionInformationChanged(event);
 		}
 	}
