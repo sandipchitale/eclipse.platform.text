@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2015 IBM Corporation and others.
+ * Copyright (c) 2000, 2017 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -140,6 +140,7 @@ public class TextSearchPage extends DialogPage implements ISearchPage, IReplaceP
 	 * @since 3.6
 	 */
 	private String[] fPreviousExtensions;
+	private Label fFileNamePatternDescription;
 
 
 	private static class SearchPatternData {
@@ -348,8 +349,8 @@ public class TextSearchPage extends DialogPage implements ISearchPage, IReplaceP
 						return FileTextSearchScope.newWorkspaceScope(getExtensions(), fSearchDerived);
 					}
 					IAdaptable[] elements= workingSet.getElements();
-					for (int i= 0; i < elements.length; i++) {
-						IResource resource= elements[i].getAdapter(IResource.class);
+					for (IAdaptable element : elements) {
+						IResource resource= element.getAdapter(IResource.class);
 						if (resource != null && resource.isAccessible()) {
 							resources.add(resource);
 						}
@@ -389,8 +390,7 @@ public class TextSearchPage extends DialogPage implements ISearchPage, IReplaceP
 
 
 	private SearchPatternData findInPrevious(String pattern) {
-		for (Iterator<SearchPatternData> iter= fPreviousSearchPatterns.iterator(); iter.hasNext();) {
-			SearchPatternData element= iter.next();
+		for (SearchPatternData element : fPreviousSearchPatterns) {
 			if (pattern.equals(element.textPattern)) {
 				return element;
 			}
@@ -685,7 +685,7 @@ public class TextSearchPage extends DialogPage implements ISearchPage, IReplaceP
 	private String insertEscapeChars(String text) {
 		if (text == null || text.equals("")) //$NON-NLS-1$
 			return ""; //$NON-NLS-1$
-		StringBuffer sbIn= new StringBuffer(text);
+		StringBuilder sbIn= new StringBuilder(text);
 		BufferedReader reader= new BufferedReader(new StringReader(text));
 		int lengthOfFirstLine= 0;
 		try {
@@ -693,7 +693,7 @@ public class TextSearchPage extends DialogPage implements ISearchPage, IReplaceP
 		} catch (IOException ex) {
 			return ""; //$NON-NLS-1$
 		}
-		StringBuffer sbOut= new StringBuffer(lengthOfFirstLine + 5);
+		StringBuilder sbOut= new StringBuilder(lengthOfFirstLine + 5);
 		int i= 0;
 		while (i < lengthOfFirstLine) {
 			char ch= sbIn.charAt(i);
@@ -749,11 +749,10 @@ public class TextSearchPage extends DialogPage implements ISearchPage, IReplaceP
 
 		fFileTypeEditor= new FileTypeEditor(fExtensions, button);
 
-		// Text line which explains the special characters
-		Label description= new Label(group, SWT.LEAD);
-		description.setText(SearchMessages.SearchPage_fileNamePatterns_hint);
-		description.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false, 2, 1));
-		description.setFont(group.getFont());
+		fFileNamePatternDescription = new Label(group, SWT.LEAD);
+		fFileNamePatternDescription.setText(SearchMessages.SearchPage_fileNamePatterns_hint);
+		fFileNamePatternDescription.setLayoutData(new GridData(SWT.FILL, SWT.CENTER, false, false, 2, 1));
+		fFileNamePatternDescription.setFont(group.getFont());
 
 
 		Group searchInGroup= new Group(group, SWT.NONE);
@@ -903,10 +902,13 @@ public class TextSearchPage extends DialogPage implements ISearchPage, IReplaceP
 
 	private void statusMessage(boolean error, String message) {
 		fStatusLabel.setText(message);
-		if (error)
+		if (error) {
 			fStatusLabel.setForeground(JFaceColors.getErrorText(fStatusLabel.getDisplay()));
-		else
-			fStatusLabel.setForeground(null);
+		}
+		else {
+			// use same color as another label to respect styling
+			fStatusLabel.setForeground(fFileNamePatternDescription.getForeground());
+		}
 	}
 
 }

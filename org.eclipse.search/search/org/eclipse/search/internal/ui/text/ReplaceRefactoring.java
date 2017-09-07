@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2007, 2015 IBM Corporation and others.
+ * Copyright (c) 2007, 2017 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -7,6 +7,7 @@
  *
  * Contributors:
  *     IBM Corporation - initial API and implementation
+ *     Florian Ingerl <imelflorianingerl@gmail.com> - Bug 109481 - [find/replace] replace doesn't work when using a regex with a lookahead or boundary matchers
  *******************************************************************************/
 package org.eclipse.search.internal.ui.text;
 
@@ -17,7 +18,6 @@ import java.util.Collection;
 import java.util.Comparator;
 import java.util.HashMap;
 import java.util.HashSet;
-import java.util.Iterator;
 import java.util.Map;
 import java.util.Set;
 import java.util.regex.Matcher;
@@ -126,8 +126,7 @@ public class ReplaceRefactoring extends Refactoring {
 		private Match[] getMatches() {
 			if (fMatches == null) {
 				ArrayList<FileMatch> matches= new ArrayList<>();
-				for (int i= 0; i < fMatchGroups.length; i++) {
-					MatchGroup curr= fMatchGroups[i];
+				for (MatchGroup curr : fMatchGroups) {
 					if (curr.group.isEnabled()) {
 						FileMatch match= curr.match;
 						matches.add(match);
@@ -211,13 +210,13 @@ public class ReplaceRefactoring extends Refactoring {
 		fMatches.clear();
 
 		if (fSelection != null) {
-			for (int i= 0; i < fSelection.length; i++) {
-				collectMatches(fSelection[i]);
+			for (Object element : fSelection) {
+				collectMatches(element);
 			}
 		} else {
 			Object[] elements= fResult.getElements();
-			for (int i= 0; i < elements.length; i++) {
-				collectMatches(elements[i]);
+			for (Object element : elements) {
+				collectMatches(element);
 			}
 		}
 		if (!hasMatches()) {
@@ -230,8 +229,7 @@ public class ReplaceRefactoring extends Refactoring {
 		if (object instanceof LineElement) {
 			LineElement lineElement= (LineElement) object;
 			FileMatch[] matches= lineElement.getMatches(fResult);
-			for (int i= 0; i < matches.length; i++) {
-				FileMatch fileMatch= matches[i];
+			for (FileMatch fileMatch : matches) {
 				if (isMatchToBeIncluded(fileMatch)) {
 					getBucket(fileMatch.getFile()).add(fileMatch);
 				}
@@ -239,15 +237,15 @@ public class ReplaceRefactoring extends Refactoring {
 		} else if (object instanceof IContainer) {
 			IContainer container= (IContainer) object;
 			IResource[] members= container.members();
-			for (int i= 0; i < members.length; i++) {
-				collectMatches(members[i]);
+			for (IResource member : members) {
+				collectMatches(member);
 			}
 		} else if (object instanceof IFile) {
 			Match[] matches= fResult.getMatches(object);
 			if (matches.length > 0) {
 				Collection<FileMatch> bucket= null;
-				for (int i= 0; i < matches.length; i++) {
-					FileMatch fileMatch= (FileMatch) matches[i];
+				for (Match match : matches) {
+					FileMatch fileMatch= (FileMatch) match;
 					if (isMatchToBeIncluded(fileMatch)) {
 						if (bucket == null) {
 							bucket= getBucket((IFile)object);
@@ -265,8 +263,7 @@ public class ReplaceRefactoring extends Refactoring {
 
 	public int getNumberOfMatches() {
 		int count= 0;
-		for (Iterator<Set<FileMatch>> iterator= fMatches.values().iterator(); iterator.hasNext();) {
-			Set<FileMatch> bucket= iterator.next();
+		for (Set<FileMatch> bucket : fMatches.values()) {
 			count += bucket.size();
 		}
 		return count;
@@ -290,8 +287,8 @@ public class ReplaceRefactoring extends Refactoring {
 		if (uri == null)
 			return true;
 
-		for (Iterator<URI> iter= fAlreadyCollected.keySet().iterator(); iter.hasNext();) {
-			if (URIUtil.equals(iter.next(), uri)) {
+		for (URI uri2 : fAlreadyCollected.keySet()) {
+			if (URIUtil.equals(uri2, uri)) {
 				if (file.equals(fAlreadyCollected.get(uri)))
 					return true; // another FileMatch for an IFile which already had matches
 
@@ -358,8 +355,7 @@ public class ReplaceRefactoring extends Refactoring {
 		ArrayList<MatchGroup> matchGroups= new ArrayList<>();
 		boolean hasChanges= false;
 		try {
-			for (int i= 0; i < allFiles.length; i++) {
-				IFile file= allFiles[i];
+			for (IFile file : allFiles) {
 				Set<FileMatch> bucket= fMatches.get(file);
 				if (!bucket.isEmpty()) {
 					try {
@@ -390,8 +386,7 @@ public class ReplaceRefactoring extends Refactoring {
 
 	private void checkFilesToBeChanged(IFile[] filesToBeChanged, RefactoringStatus resultingStatus) throws CoreException {
 		ArrayList<IFile> readOnly= new ArrayList<>();
-		for (int i= 0; i < filesToBeChanged.length; i++) {
-			IFile file= filesToBeChanged[i];
+		for (IFile file : filesToBeChanged) {
 			if (file.isReadOnly())
 				readOnly.add(file);
 		}
@@ -425,8 +420,7 @@ public class ReplaceRefactoring extends Refactoring {
 			IDocument document= textFileBuffer.getDocument();
 			String lineDelimiter= TextUtilities.getDefaultLineDelimiter(document);
 
-			for (Iterator<FileMatch> iterator= matches.iterator(); iterator.hasNext();) {
-				FileMatch match= iterator.next();
+			for (FileMatch match : matches) {
 				int offset= match.getOffset();
 				int length= match.getLength();
 				Position currentPosition= tracker.getCurrentPosition(match);
@@ -444,7 +438,9 @@ public class ReplaceRefactoring extends Refactoring {
 					continue;
 				}
 
-				String replacementString= computeReplacementString(pattern, originalText, fReplaceString, lineDelimiter);
+				String replacementString= PatternConstructor.interpretReplaceEscapes(fReplaceString, originalText,
+						lineDelimiter);
+				replacementString= computeReplacementString(pattern, document, offset, replacementString);
 				if (replacementString == null) {
 					resultingStatus.addError(Messages.format(SearchMessages.ReplaceRefactoring_error_match_content_changed, file.getName()));
 					continue;
@@ -474,21 +470,18 @@ public class ReplaceRefactoring extends Refactoring {
 		return PatternConstructor.createPattern(query.getSearchString(), true, true, query.isCaseSensitive(), false);
 	}
 
-	private String computeReplacementString(Pattern pattern, String originalText, String replacementText, String lineDelimiter) throws PatternSyntaxException {
+	private String computeReplacementString(Pattern pattern, IDocument document, int offset, String replacementText)
+			throws PatternSyntaxException {
 		if (pattern != null) {
 			try {
-				replacementText= PatternConstructor.interpretReplaceEscapes(replacementText, originalText, lineDelimiter);
-
-				Matcher matcher= pattern.matcher(originalText);
-		        StringBuffer sb = new StringBuffer();
-		        matcher.reset();
-		        if (matcher.find()) {
+				Matcher matcher= pattern.matcher(document.get());
+				if (matcher.find(offset)) {
+					StringBuffer sb= new StringBuffer();
 		        	matcher.appendReplacement(sb, replacementText);
+					return sb.substring(offset);
 		        } else {
 		        	return null;
 		        }
-		        matcher.appendTail(sb);
-		        return sb.toString();
 			} catch (IndexOutOfBoundsException ex) {
 				throw new PatternSyntaxException(ex.getLocalizedMessage(), replacementText, -1);
 			}

@@ -50,11 +50,11 @@ public class PositionTrackerTest {
 	public void setUp() throws Exception {
 		String[] fileNamePatterns= { "*.java" };
 		FileTextSearchScope scope= FileTextSearchScope.newWorkspaceScope(fileNamePatterns, false);
-	
+
 		fQuery1= new FileSearchQuery("Test", false, true, scope);
 	}
-	
-	
+
+
 	@Test
 	public void testInsertAt0() throws Exception {
 		NewSearchUI.runQueryInForeground(null, fQuery1);
@@ -68,7 +68,7 @@ public class PositionTrackerTest {
 			SearchPlugin.getActivePage().closeAllEditors(false);
 		}
 	}
-	
+
 	@Test
 	public void testInsertInsideMatch() throws Exception {
 		NewSearchUI.runQueryInForeground(null, fQuery1);
@@ -101,7 +101,7 @@ public class PositionTrackerTest {
 				Position currentPosition= InternalSearchUI.getInstance().getPositionTracker().getCurrentPosition(matches[i]);
 				assertNotNull(currentPosition);
 				String text= doc.get(currentPosition.offset, currentPosition.length);
-				StringBuffer buf= new StringBuffer();
+				StringBuilder buf= new StringBuilder();
 				buf.append(text.charAt(0));
 				buf.append(text.substring(5));
 				assertEquals(buf.toString(), ((FileSearchQuery) result.getQuery()).getSearchString());
@@ -133,5 +133,5 @@ public class PositionTrackerTest {
 			SearchPlugin.getActivePage().closeAllEditors(false);
 		}
 	}
-	
+
 }

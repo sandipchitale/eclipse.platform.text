@@ -174,7 +174,7 @@ public class FileSearchQuery implements ISearchQuery {
 		}
 
 		private static String getContents(TextSearchMatchAccess matchRequestor, int start, int end) {
-			StringBuffer buf= new StringBuffer();
+			StringBuilder buf= new StringBuilder();
 			for (int i= start; i < end; i++) {
 				char ch= matchRequestor.getFileContentChar(i);
 				if (Character.isWhitespace(ch) || Character.isISOControl(ch)) {
@@ -259,8 +259,8 @@ public class FileSearchQuery implements ISearchQuery {
 		String[] fileNamePatterns= fScope.getFileNamePatterns();
 		if (fileNamePatterns == null)
 			return true;
-		for (int i= 0; i < fileNamePatterns.length; i++) {
-			if ("*".equals(fileNamePatterns[i])) { //$NON-NLS-1$
+		for (String fileNamePattern : fileNamePatterns) {
+			if ("*".equals(fileNamePattern)) { //$NON-NLS-1$
 				return true;
 			}
 		}

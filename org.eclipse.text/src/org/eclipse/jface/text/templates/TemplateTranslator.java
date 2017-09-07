@@ -44,7 +44,7 @@ import java.util.regex.Pattern;
 public class TemplateTranslator {
 	/**
 	 * Regex pattern for identifier.
-	 * Note: For historic reasons, this pattern <em>allows</em> numbers at the beginning of an identifier. 
+	 * Note: For historic reasons, this pattern <em>allows</em> numbers at the beginning of an identifier.
 	 * @since 3.7
 	 */
 	private static final String IDENTIFIER= "(?:[\\p{javaJavaIdentifierPart}&&[^\\$]]++)"; //$NON-NLS-1$
@@ -184,7 +184,7 @@ public class TemplateTranslator {
 	private TemplateBuffer parse(String string) throws TemplateException {
 
 		fErrorMessage= null;
-		final StringBuffer buffer= new StringBuffer(string.length());
+		final StringBuilder buffer= new StringBuilder(string.length());
 		final Matcher matcher= ESCAPE_PATTERN.matcher(string);
 		final Map<String, VariableDescription> variables= new LinkedHashMap<>();
 

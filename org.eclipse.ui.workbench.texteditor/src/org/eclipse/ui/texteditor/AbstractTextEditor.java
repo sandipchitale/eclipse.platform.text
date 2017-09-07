@@ -193,6 +193,7 @@ import org.eclipse.ui.IWindowListener;
 import org.eclipse.ui.IWorkbenchActionConstants;
 import org.eclipse.ui.IWorkbenchCommandConstants;
 import org.eclipse.ui.IWorkbenchPart;
+import org.eclipse.ui.IWorkbenchPartSite;
 import org.eclipse.ui.IWorkbenchWindow;
 import org.eclipse.ui.PartInitException;
 import org.eclipse.ui.PlatformUI;
@@ -619,17 +620,21 @@ public abstract class AbstractTextEditor extends EditorPart implements ITextEdit
 						IDocument document= getDocumentProvider().getDocument(input);
 
 						if (fLocalLastEditPosition != null) {
-							document.removePosition(fLocalLastEditPosition);
+							if (document != null) {
+								document.removePosition(fLocalLastEditPosition);
+							}
 							fLocalLastEditPosition= null;
 						}
 
 						if (sel instanceof ITextSelection && !sel.isEmpty()) {
 							ITextSelection s= (ITextSelection) sel;
 							fLocalLastEditPosition= new Position(s.getOffset(), s.getLength());
-							try {
-								document.addPosition(fLocalLastEditPosition);
-							} catch (BadLocationException ex) {
-								fLocalLastEditPosition= null;
+							if (document != null) {
+								try {
+									document.addPosition(fLocalLastEditPosition);
+								} catch (BadLocationException ex) {
+									fLocalLastEditPosition = null;
+								}
 							}
 						}
 
@@ -5323,7 +5328,11 @@ public abstract class AbstractTextEditor extends EditorPart implements ITextEdit
 		for (int i= 0; i < elements.length; i++) {
 			IConfigurationElement element= elements[i];
 			if (TAG_CONTRIBUTION_TYPE.equals(element.getName())) {
-				if (!getSite().getId().equals(element.getAttribute("targetID"))) //$NON-NLS-1$
+				IWorkbenchPartSite site = getSite();
+				if (site == null) {
+					return null;
+				}
+				if (!site.getId().equals(element.getAttribute("targetID"))) //$NON-NLS-1$
 					continue;
 
 				IConfigurationElement[] children= element.getChildren("action"); //$NON-NLS-1$
@@ -6557,9 +6566,9 @@ public abstract class AbstractTextEditor extends EditorPart implements ITextEdit
 	}
 
 	private void updateCaret() {
-
-		if (fSourceViewer == null)
+		if (fSourceViewer == null || fSourceViewer.getTextWidget() == null) {
 			return;
+		}
 
 		StyledText styledText= fSourceViewer.getTextWidget();
 
@@ -6911,7 +6920,10 @@ public abstract class AbstractTextEditor extends EditorPart implements ITextEdit
 		boolean currentAnnotation= false;
 
 		IDocument document= getDocumentProvider().getDocument(getEditorInput());
-		int endOfDocument= document.getLength();
+		int endOfDocument = 0;
+		if (document != null) {
+			endOfDocument = document.getLength();
+		}
 		int distance= Integer.MAX_VALUE;
 
 		IAnnotationModel model= getDocumentProvider().getAnnotationModel(getEditorInput());

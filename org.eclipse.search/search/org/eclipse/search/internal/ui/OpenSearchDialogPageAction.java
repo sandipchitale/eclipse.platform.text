@@ -11,7 +11,6 @@
  *******************************************************************************/
 package org.eclipse.search.internal.ui;
 
-import java.util.Iterator;
 import java.util.List;
 
 import org.eclipse.swt.events.MenuAdapter;
@@ -77,8 +76,7 @@ public class OpenSearchDialogPageAction implements IWorkbenchWindowPulldownDeleg
 	private void fillMenu(final Menu localMenu) {
 		List<SearchPageDescriptor> pageDescriptors= SearchPlugin.getDefault().getSearchPageDescriptors();
 		int accelerator= 1;
-		for (Iterator<SearchPageDescriptor> iter= pageDescriptors.iterator(); iter.hasNext();) {
-			SearchPageDescriptor desc= iter.next();
+		for (SearchPageDescriptor desc : pageDescriptors) {
 			if (!WorkbenchActivityHelper.filterItem(desc) && desc.isEnabled()) {
 				SearchPageAction action= new SearchPageAction(fWorkbenchWindow, desc);
 				addToMenu(localMenu, action, accelerator++);
@@ -99,7 +97,7 @@ public class OpenSearchDialogPageAction implements IWorkbenchWindowPulldownDeleg
 	}
 
 	private void addToMenu(Menu localMenu, IAction action, int accelerator) {
-		StringBuffer label= new StringBuffer();
+		StringBuilder label= new StringBuilder();
 		if (accelerator >= 0 && accelerator < 10) {
 			//add the numerical accelerator
 			label.append('&');

@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2008 IBM Corporation and others.
+ * Copyright (c) 2000, 2017 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -16,6 +16,7 @@ import org.eclipse.swt.custom.StyledText;
 import org.eclipse.swt.events.PaintEvent;
 import org.eclipse.swt.events.PaintListener;
 import org.eclipse.swt.graphics.Color;
+import org.eclipse.swt.graphics.Font;
 import org.eclipse.swt.graphics.GC;
 import org.eclipse.swt.graphics.Rectangle;
 
@@ -45,7 +46,8 @@ public class MarginPainter implements IPainter, PaintListener {
 	/** The line width of the line to be painted, default value <code>1</code> */
 	private int fLineWidth= 0; // NOTE: 0 means width is 1 but with optimized performance
 	/** The cached x-offset of the <code>fMarginWidth</code> for the current font */
-	private int fCachedWidgetX= -1;
+	private int fCachedWidgetX= -1;	
+	private Font fFontForCachedWidgetX;
 	/** The active state of this painter */
 	private boolean fIsActive= false;
 
@@ -98,8 +100,8 @@ public class MarginPainter implements IPainter, PaintListener {
 	}
 
 	/**
-	 * Initializes this painter, by flushing and recomputing all caches and causing
-	 * the widget to be redrawn. Must be called explicitly when font of text widget changes.
+	 * Initializes this painter, by flushing and recomputing all caches and causing the widget to be
+	 * redrawn.
 	 */
 	public void initialize() {
 		computeWidgetX();
@@ -112,6 +114,7 @@ public class MarginPainter implements IPainter, PaintListener {
 	 */
 	private void computeWidgetX() {
 		GC gc= new GC(fTextWidget);
+		fFontForCachedWidgetX= fTextWidget.getFont();
 		int pixels= gc.getFontMetrics().getAverageCharWidth();
 		gc.dispose();
 
@@ -149,6 +152,9 @@ public class MarginPainter implements IPainter, PaintListener {
 	@Override
 	public void paintControl(PaintEvent e) {
 		if (fTextWidget != null) {
+			if (fFontForCachedWidgetX != fTextWidget.getFont()) {
+				computeWidgetX();
+			}
 			int x= fCachedWidgetX - fTextWidget.getHorizontalPixel();
 			if (x >= 0) {
 				Rectangle area= fTextWidget.getClientArea();

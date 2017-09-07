@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="UTF-8"?>
 <?eclipse version="3.4"?>
 <!-- ====================================================================== -->
-<!-- Copyright (c) 2016 Red Hat Inc. and others.                            -->
+<!-- Copyright (c) 2016, 2017 Red Hat Inc. and others.                      -->
 <!-- All rights reserved. This program and the accompanying materials       -->
 <!-- are made available under the terms of the Eclipse Public License v1.0  -->
 <!-- which accompanies this distribution, and is available at               -->
@@ -9,39 +9,98 @@
 <!--                                                                        -->
 <!-- Contributors:                                                          -->
 <!--     Sopot Cela & Mickael Istria (Red Hat Inc). -initial implementation -->
+<!--     Lucas Bullen (Red Hat Inc.) - Bug 508829 custom reconciler support -->
 <!-- ====================================================================== -->
 <plugin>
  <extension
 			 point="org.eclipse.ui.genericeditor.contentAssistProcessors">
 		<contentAssistProcessor
 					class="org.eclipse.ui.genericeditor.tests.contributions.BarContentAssistProcessor"
-					contentType="org.eclipse.core.runtime.text">
+					contentType="org.eclipse.ui.genericeditor.tests.content-type">
 		</contentAssistProcessor>
   <contentAssistProcessor
         class="org.eclipse.ui.genericeditor.tests.contributions.LongRunningBarContentAssistProcessor"
-        contentType="org.eclipse.core.runtime.text">
+        contentType="org.eclipse.ui.genericeditor.tests.content-type">
   </contentAssistProcessor>
  </extension>
  <extension
 			 point="org.eclipse.ui.genericeditor.hoverProviders">
 		<hoverProvider
 					class="org.eclipse.ui.genericeditor.tests.contributions.MagicHoverProvider"
-					contentType="org.eclipse.core.runtime.text">
+					contentType="org.eclipse.ui.genericeditor.tests.content-type">
 		</hoverProvider>
  </extension>
- <extension
+  <extension
+			 point="org.eclipse.ui.genericeditor.reconcilers">
+		<reconciler
+					class="org.eclipse.ui.genericeditor.tests.contributions.TheReconcilerFirst"
+					contentType="org.eclipse.core.runtime.text">
+		</reconciler>
+  <reconciler
+        class="org.eclipse.ui.genericeditor.tests.contributions.TheReconcilerSecond"
+        contentType="org.eclipse.ui.genericeditor.tests.reconciled-content-type">
+  </reconciler>
+  </extension>
+	<extension
 			 point="org.eclipse.ui.genericeditor.presentationReconcilers">
 		<presentationReconciler
-					class="org.eclipse.ui.genericeditor.tests.contributions.ThePresentationReconciler"
-					contentType="org.eclipse.core.runtime.text">
+			class="org.eclipse.ui.genericeditor.tests.contributions.ThePresentationReconcilerBlue"
+			contentType="org.eclipse.core.runtime.text">
 		</presentationReconciler>
-   </extension>
+		<presentationReconciler
+			class="org.eclipse.ui.genericeditor.tests.contributions.ThePresentationReconcilerRed"
+			contentType="org.eclipse.ui.genericeditor.tests.specialized-content-type">
+		</presentationReconciler>
+		<presentationReconciler
+			class="org.eclipse.ui.genericeditor.tests.contributions.ThePresentationReconcilerGreen"
+			contentType="org.eclipse.ui.genericeditor.tests.content-type">
+		</presentationReconciler>
+	</extension>
  <extension
        point="org.eclipse.ui.ide.markerResolution">
     <markerResolutionGenerator
           class="org.eclipse.ui.genericeditor.tests.contributions.MarkerResolutionGenerator"
           markerType="org.eclipse.core.resources.problemmarker">
     </markerResolutionGenerator>
+ </extension>
+ <extension
+       point="org.eclipse.core.contenttype.contentTypes">
+    <content-type
+          base-type="org.eclipse.core.runtime.text"
+          file-names="foo.txt"
+          id="org.eclipse.ui.genericeditor.tests.content-type"
+          name="Generic Editor Test content-type"
+          priority="normal">
+    </content-type>
+    <content-type
+          base-type="org.eclipse.ui.genericeditor.tests.content-type"
+          file-names="foo.txt"
+          id="org.eclipse.ui.genericeditor.tests.specialized-content-type"
+          name="Specialized Generic Editor content-type"
+          priority="normal">
+    </content-type>
+    <content-type
+          base-type="org.eclipse.core.runtime.text"
+          file-names="bar.txt"
+          id="org.eclipse.ui.genericeditor.tests.reconciled-content-type"
+          name="Generic Editor Reconciler Test content-type"
+          priority="normal">
+    </content-type>
+ </extension>
+ <extension
+       point="org.eclipse.ui.genericeditor.autoEditStrategies">
+    <autoEditStrategy
+          class="org.eclipse.ui.genericeditor.tests.contributions.TheAutoEditStrategyFirst"
+          contentType="org.eclipse.core.runtime.text">
+    </autoEditStrategy>
+    <autoEditStrategy
+          class="org.eclipse.ui.genericeditor.tests.contributions.TheAutoEditStrategySecond"
+          contentType="org.eclipse.ui.genericeditor.tests.content-type">
+    </autoEditStrategy>
+    <autoEditStrategy
+          class="org.eclipse.ui.genericeditor.tests.contributions.TheAutoEditStrategyThird"
+          contentType="org.eclipse.ui.genericeditor.tests.specialized-content-type">
+    </autoEditStrategy>
  </extension>
 
 </plugin>

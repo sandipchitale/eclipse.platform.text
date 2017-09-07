@@ -1,5 +1,5 @@
 /*******************************************************************************
- * Copyright (c) 2000, 2012 IBM Corporation and others.
+ * Copyright (c) 2000, 2017 IBM Corporation and others.
  * All rights reserved. This program and the accompanying materials
  * are made available under the terms of the Eclipse Public License v1.0
  * which accompanies this distribution, and is available at
@@ -9,6 +9,7 @@
  *     IBM Corporation - initial API and implementation
  *     Cagatay Calli <ccalli@gmail.com> - [find/replace] retain caps when replacing - https://bugs.eclipse.org/bugs/show_bug.cgi?id=28949
  *     Cagatay Calli <ccalli@gmail.com> - [find/replace] define & fix behavior of retain caps with other escapes and text before \C - https://bugs.eclipse.org/bugs/show_bug.cgi?id=217061
+ *     Florian Ingerl <imelflorianingerl@gmail.com> - [find/replace] replace doesn't work when using a regex with a lookahead or boundary matchers - https://bugs.eclipse.org/bugs/show_bug.cgi?id=109481
  *******************************************************************************/
 package org.eclipse.jface.text;
 
@@ -194,8 +195,11 @@ public class FindReplaceDocumentAdapter implements CharSequence {
 				String prevMatch= fFindReplaceMatcher.group();
 				try {
 					replaceText= interpretReplaceEscapes(replaceText, prevMatch);
-					Matcher replaceTextMatcher= pattern.matcher(prevMatch);
-					replaceText= replaceTextMatcher.replaceFirst(replaceText);
+					Matcher replaceTextMatcher= pattern.matcher(this);
+					replaceTextMatcher.find(fFindReplaceMatcher.start());
+					StringBuffer sb= new StringBuffer();
+					replaceTextMatcher.appendReplacement(sb, replaceText);
+					replaceText= sb.substring(fFindReplaceMatcher.start());
 				} catch (IndexOutOfBoundsException ex) {
 					throw new PatternSyntaxException(ex.getLocalizedMessage(), replaceText, -1);
 				}
@@ -269,7 +273,7 @@ public class FindReplaceDocumentAdapter implements CharSequence {
 	 */
 	private String substituteLinebreak(String findString) throws PatternSyntaxException {
 		int length= findString.length();
-		StringBuffer buf= new StringBuffer(length);
+		StringBuilder buf= new StringBuilder(length);
 
 		int inCharGroup= 0;
 		int inBraces= 0;
@@ -347,7 +351,7 @@ public class FindReplaceDocumentAdapter implements CharSequence {
 	 * @param ch the character to process
 	 * @since 3.4
 	 */
-	private void interpretRetainCase(StringBuffer buf, char ch) {
+	private void interpretRetainCase(StringBuilder buf, char ch) {
 		if (fRetainCaseMode == RC_UPPER)
 			buf.append(String.valueOf(ch).toUpperCase());
 		else if (fRetainCaseMode == RC_LOWER)
@@ -370,7 +374,7 @@ public class FindReplaceDocumentAdapter implements CharSequence {
 	private String interpretReplaceEscapes(String replaceText, String foundText) {
 		int length= replaceText.length();
 		boolean inEscape= false;
-		StringBuffer buf= new StringBuffer(length);
+		StringBuilder buf= new StringBuilder(length);
 
 		/* every string we did not check looks mixed at first
 		 * so initialize retain case mode with RC_MIXED
@@ -431,7 +435,7 @@ public class FindReplaceDocumentAdapter implements CharSequence {
 	 * @return the new offset
 	 * @since 3.4
 	 */
-	private int interpretReplaceEscape(final char ch, int i, StringBuffer buf, String replaceText, String foundText) {
+	private int interpretReplaceEscape(final char ch, int i, StringBuilder buf, String replaceText, String foundText) {
 		int length= replaceText.length();
 		switch (ch) {
 			case 'r':
@@ -561,7 +565,7 @@ public class FindReplaceDocumentAdapter implements CharSequence {
 	 * @return the string converted to a regex pattern
 	 */
 	private String asRegPattern(String string) {
-		StringBuffer out= new StringBuffer(string.length());
+		StringBuilder out= new StringBuilder(string.length());
 		boolean quoting= false;
 
 		for (int i= 0, length= string.length(); i < length; i++) {
@@ -644,8 +648,8 @@ public class FindReplaceDocumentAdapter implements CharSequence {
 	 */
 	public static String escapeForRegExPattern(String string) {
 		//implements https://bugs.eclipse.org/bugs/show_bug.cgi?id=44422
-	
-		StringBuffer pattern= new StringBuffer(string.length() + 16);
+
+		StringBuilder pattern= new StringBuilder(string.length() + 16);
 		int length= string.length();
 		for (int i= 0; i < length; i++) {
 			char ch= string.charAt(i);
@@ -666,7 +670,7 @@ public class FindReplaceDocumentAdapter implements CharSequence {
 				case '$':
 					pattern.append('\\').append(ch);
 					break;
-	
+
 				case '\r':
 					if (i + 1 < length && string.charAt(i + 1) == '\n')
 						i++;
@@ -686,7 +690,7 @@ public class FindReplaceDocumentAdapter implements CharSequence {
 				case 0x1B:
 					pattern.append("\\e"); //$NON-NLS-1$
 					break;
-	
+
 				default:
 					if (0 <= ch && ch < 0x20) {
 						pattern.append("\\x"); //$NON-NLS-1$

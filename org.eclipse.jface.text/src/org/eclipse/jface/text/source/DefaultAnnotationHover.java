@@ -90,7 +90,7 @@ public class DefaultAnnotationHover implements IAnnotationHover {
 		}
 
 		if (fShowLineNumber && lineNumber > -1)
-			return JFaceTextMessages.getFormattedString("DefaultAnnotationHover.lineNumber", new String[] { Integer.toString(lineNumber + 1) }); //$NON-NLS-1$
+			return JFaceTextMessages.getFormattedString("DefaultAnnotationHover.lineNumber", Integer.toString(lineNumber + 1)); //$NON-NLS-1$
 
 		return null;
 	}
@@ -131,14 +131,14 @@ public class DefaultAnnotationHover implements IAnnotationHover {
 	 * @return the formatted message
 	 */
 	protected String formatMultipleMessages(List<String> messages) {
-		StringBuffer buffer= new StringBuffer();
+		StringBuilder buffer= new StringBuilder();
 		buffer.append(JFaceTextMessages.getString("DefaultAnnotationHover.multipleMarkers")); //$NON-NLS-1$
 
 		Iterator<String> e= messages.iterator();
 		while (e.hasNext()) {
 			buffer.append('\n');
 			String listItemText= e.next();
-			buffer.append(JFaceTextMessages.getFormattedString("DefaultAnnotationHover.listItem", new String[] { listItemText })); //$NON-NLS-1$
+			buffer.append(JFaceTextMessages.getFormattedString("DefaultAnnotationHover.listItem", listItemText)); //$NON-NLS-1$
 		}
 		return buffer.toString();
 	}
@@ -170,7 +170,7 @@ public class DefaultAnnotationHover implements IAnnotationHover {
 			if (value instanceof List) {
 				@SuppressWarnings("unchecked")
 				List<Object> messages= (List<Object>) value;
-				if  (messages.contains(message))
+				if (messages.contains(message))
 					return true;
 
 				messages.add(message);

@@ -19,7 +19,9 @@ import org.junit.runners.Suite.SuiteClasses;
 		CompletionTest.class,
 		StylingTest.class,
 		HoverTest.class,
-		EditorTest.class
+		EditorTest.class,
+		AutoEditTest.class,
+		ReconcilerTest.class
 })
 public class GenericEditorTestSuite {
 	// see @SuiteClasses
